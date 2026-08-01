@@ -1,0 +1,50 @@
+# IDEs et Editeurs
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# Java - Backend (Maven)
+Backend/target/
+Backend/*.class
+Backend/.mvn/
+Backend/mvnw
+Backend/mvnw.cmd
+Backend/uploads
+
+# Frontend (Angular)
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.angular/
+Frontend/.npm/
+
+# Archive de scaffolding initiale (gardée localement, non versionnée)
+backend-KriliCar-Initial.zip
+
+# Docker & Base de données
+**/mysql_data/
+Docker/mysql_data/
+
+# Logs et Système
+*.log
+.DS_Store
+Thumbs.db
+
+# Compiled class file
+*.class
+
+# BlueJ files
+*.ctxt
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Crash logs
+hs_err_pid*
+replay_pid*
