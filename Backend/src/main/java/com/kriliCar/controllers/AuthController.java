@@ -4,6 +4,8 @@ import com.kriliCar.dtos.auth.JwtResponseDTO;
 import com.kriliCar.dtos.auth.LoginRequestDTO;
 import com.kriliCar.dtos.registration.ClientRegistrationDTO;
 import com.kriliCar.dtos.registration.ClientRegistrationResponseDTO;
+import com.kriliCar.dtos.registration.CompanyRegistrationDTO;
+import com.kriliCar.dtos.registration.CompanyRegistrationResponseDTO;
 import com.kriliCar.entities.AppUser;
 import com.kriliCar.services.interfaces.AuthService;
 import com.kriliCar.utils.JwtUtils;
@@ -71,5 +73,15 @@ public class AuthController {
 
         ClientRegistrationResponseDTO registeredUser = authService.registerClient(registrationDTO, imageFile);
         return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+    }
+
+    // POST /api/v1/auth/register/company
+    @PostMapping(value = "/register/company", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CompanyRegistrationResponseDTO> registerCompany(
+            @RequestPart("company") CompanyRegistrationDTO registrationDTO,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) throws IOException {
+
+        CompanyRegistrationResponseDTO registeredCompany = authService.registerCompany(registrationDTO, imageFile);
+        return new ResponseEntity<>(registeredCompany, HttpStatus.CREATED);
     }
 }
