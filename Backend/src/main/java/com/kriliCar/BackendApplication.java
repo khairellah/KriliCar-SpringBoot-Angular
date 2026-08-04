@@ -1,4 +1,4 @@
-package com.krilicar;
+package com.kriliCar;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

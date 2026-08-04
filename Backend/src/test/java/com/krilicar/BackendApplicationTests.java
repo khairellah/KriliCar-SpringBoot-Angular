@@ -1,4 +1,4 @@
-package com.krilicar;
+package com.kriliCar;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
