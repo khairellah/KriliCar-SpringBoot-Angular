@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import java.util.stream.Collectors;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException; import org.springframework.http.converter.HttpMessageNotReadableException;
 
 
 @ControllerAdvice
@@ -56,6 +57,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedActionException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedAction(UnauthorizedActionException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, WebRequest request) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException) {
+            InvalidFormatException ife = (InvalidFormatException) cause;
+            if (ife.getTargetType() != null && ife.getTargetType().equals(com.kriliCar.enums.City.class)) {
+                return buildErrorResponse(HttpStatus.BAD_REQUEST, "Valeur de city invalide: " + ife.getValue(), request);
+            }
+        }
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Requête mal formée.", request);
     }
 
     // 6. Fallback 500 - Erreur interne générique

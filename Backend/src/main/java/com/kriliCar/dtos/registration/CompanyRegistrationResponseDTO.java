@@ -18,6 +18,7 @@ public class CompanyRegistrationResponseDTO {
     private String image;
 
     // CHAMPS SPÉCIFIQUES À COMPANY
+    private String companyName;
     private String landline;
     private City city;
     private String description;
