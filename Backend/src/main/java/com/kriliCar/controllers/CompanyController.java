@@ -63,10 +63,10 @@ public class CompanyController {
      *
      * ✅ Authentification requise + rôle COMPANY
      * ✅ Vérification de l'ancien mot de passe
-     * ✅ Confirmation du nouveau mot de passe
      * ✅ Encodage en BCrypt
+     * ⚠️ La confirmation (newPassword == confirmPassword) est validée côté Angular
      *
-     * @param request Ancien + nouveau mot de passe + confirmation
+     * @param request Ancien + nouveau mot de passe
      * @param principal Contexte de sécurité (email du token JWT)
      * @return DTO de confirmation (sans password)
      */

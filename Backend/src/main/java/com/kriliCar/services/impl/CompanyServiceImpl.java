@@ -114,11 +114,13 @@ public class CompanyServiceImpl implements CompanyService {
      * US-1.4 (extension) : Changement sécurisé du mot de passe.
      *
      * ✅ Vérifie l'ancien mot de passe avant de le modifier
-     * ✅ Confirmation et ancien mot de passe correspondent
      * ✅ Encodage du nouveau mot de passe en BCrypt
      *
+     * ⚠️ La confirmation (newPassword == confirmPassword) est déjà validée
+     * côté Frontend (Angular). Le Backend ne reçoit que oldPassword et newPassword.
+     *
      * @param email Email de la Company
-     * @param request Ancien + nouveau mot de passe + confirmation
+     * @param request Ancien + nouveau mot de passe
      * @return DTO de réponse (confirmation de changement)
      */
     @Override
@@ -140,17 +142,12 @@ public class CompanyServiceImpl implements CompanyService {
             throw new UnauthorizedActionException("L'ancien mot de passe est incorrect.");
         }
 
-        // 3. Validation de la confirmation
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new IllegalArgumentException("Le nouveau mot de passe et sa confirmation ne correspondent pas.");
-        }
-
-        // 4. Vérification que le nouveau mot de passe est différent de l'ancien
+        // 3. Vérification que le nouveau mot de passe est différent de l'ancien
         if (passwordEncoder.matches(request.getNewPassword(), company.getPassword())) {
             throw new IllegalArgumentException("Le nouveau mot de passe doit être différent de l'ancien.");
         }
 
-        // 5. Encodage et mise à jour
+        // 4. Encodage et mise à jour
         String hashedPassword = passwordEncoder.encode(request.getNewPassword());
         company.setPassword(hashedPassword);
 
