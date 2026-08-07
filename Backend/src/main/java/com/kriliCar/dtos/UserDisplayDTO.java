@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 // NOTE: N'inclut pas @Builder car nous mappons directement depuis l'entité.
 public class UserDisplayDTO {
-    private Long id;
+    private String code;
     private String firstName;
     private String lastName;
     private String phone;
