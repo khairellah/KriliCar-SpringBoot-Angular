@@ -1,0 +1,162 @@
+package com.kriliCar.services.impl;
+
+import com.kriliCar.dtos.CompanyProfileRequest;
+import com.kriliCar.dtos.auth.ChangePasswordRequest;
+import com.kriliCar.dtos.responses.CompanyProfileResponse;
+import com.kriliCar.entities.Company;
+import com.kriliCar.exceptions.ResourceNotFoundException;
+import com.kriliCar.exceptions.UnauthorizedActionException;
+import com.kriliCar.mappers.CompanyMapper;
+import com.kriliCar.repositories.CompanyRepository;
+import com.kriliCar.services.interfaces.CompanyService;
+import com.kriliCar.services.interfaces.FileService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+
+/**
+ * Service pour la gestion des profils Company.
+ * - Modification des informations personnelles
+ * - Changement de mot de passe sécurisé (avec vérification de l'ancien)
+ * - Gestion des images de profil
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CompanyServiceImpl implements CompanyService {
+
+    private final CompanyRepository companyRepository;
+    private final FileService fileService;
+    private final PasswordEncoder passwordEncoder;
+    private final CompanyMapper companyMapper; // MapStruct pour DTO
+
+    /**
+     * US-1.4 : Modifier le profil Company.
+     *
+     * ✅ Email et rôle sont NON modifiables
+     * ✅ Gestion sécurisée de l'image (suppression avant upload)
+     * ✅ @Transactional assure la cohérence
+     *
+     * @param email Email de la Company (du token JWT)
+     * @param request Données de modification
+     * @param imageFile Image de profil optionnelle
+     * @return DTO de réponse (sans password)
+     * @throws IOException En cas d'erreur lors du traitement du fichier
+     */
+    @Override
+    @Transactional
+    public CompanyProfileResponse updateProfile(
+            String email,
+            CompanyProfileRequest request,
+            MultipartFile imageFile) throws IOException {
+
+        // 1. Récupération sécurisée de la Company
+        Company company = companyRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "email", email));
+
+        log.info("Début de modification du profil pour la société : {}", company.getCode());
+
+        // 2. Mise à jour des champs modifiables
+        // ⚠️ Email et Rôle ne sont JAMAIS modifiés (assurance double)
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) {
+            company.setFirstName(request.getFirstName().trim());
+        }
+        if (request.getLastName() != null && !request.getLastName().isBlank()) {
+            company.setLastName(request.getLastName().trim());
+        }
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            company.setPhone(request.getPhone().trim());
+        }
+        if (request.getCompanyName() != null && !request.getCompanyName().isBlank()) {
+            company.setCompanyName(request.getCompanyName().trim());
+        }
+        if (request.getLandline() != null && !request.getLandline().isBlank()) {
+            company.setLandline(request.getLandline().trim());
+        }
+        if (request.getCity() != null) {
+            company.setCity(request.getCity());
+        }
+        if (request.getDescription() != null && !request.getDescription().isBlank()) {
+            company.setDescription(request.getDescription().trim());
+        }
+
+        // 3. Gestion de l'image de profil
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // Suppression de l'ancienne image si elle existe
+            if (company.getImage() != null && !company.getImage().isBlank()) {
+                try {
+                    fileService.deleteFile(company.getImage());
+                    log.debug("Ancienne image supprimée pour {}", company.getCode());
+                } catch (Exception e) {
+                    log.warn("Impossible de supprimer l'ancienne image pour {} : {}", company.getCode(), e.getMessage());
+                    // On continue même si la suppression échoue
+                }
+            }
+            // Upload de la nouvelle image
+            String imagePath = fileService.uploadFile(imageFile, "Company");
+            company.setImage(imagePath);
+            log.debug("Nouvelle image uploadée pour {} : {}", company.getCode(), imagePath);
+        }
+
+        // 4. Sauvegarde et retour du DTO
+        Company updated = companyRepository.save(company);
+        log.info("Profil modifié avec succès pour la société : {}", company.getCode());
+
+        return companyMapper.toProfileResponse(updated);
+    }
+
+    /**
+     * US-1.4 (extension) : Changement sécurisé du mot de passe.
+     *
+     * ✅ Vérifie l'ancien mot de passe avant de le modifier
+     * ✅ Confirmation et ancien mot de passe correspondent
+     * ✅ Encodage du nouveau mot de passe en BCrypt
+     *
+     * @param email Email de la Company
+     * @param request Ancien + nouveau mot de passe + confirmation
+     * @return DTO de réponse (confirmation de changement)
+     */
+    @Override
+    @Transactional
+    public CompanyProfileResponse changePassword(
+            String email,
+            ChangePasswordRequest request) {
+
+        // 1. Récupération sécurisée de la Company
+        Company company = companyRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "email", email));
+
+        log.info("Début du changement de mot de passe pour la société : {}", company.getCode());
+
+        // 2. Vérification de l'ancien mot de passe
+        if (!passwordEncoder.matches(request.getOldPassword(), company.getPassword())) {
+            log.warn("Tentative de changement de mot de passe avec ancien mot de passe incorrect pour : {}",
+                    company.getCode());
+            throw new UnauthorizedActionException("L'ancien mot de passe est incorrect.");
+        }
+
+        // 3. Validation de la confirmation
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Le nouveau mot de passe et sa confirmation ne correspondent pas.");
+        }
+
+        // 4. Vérification que le nouveau mot de passe est différent de l'ancien
+        if (passwordEncoder.matches(request.getNewPassword(), company.getPassword())) {
+            throw new IllegalArgumentException("Le nouveau mot de passe doit être différent de l'ancien.");
+        }
+
+        // 5. Encodage et mise à jour
+        String hashedPassword = passwordEncoder.encode(request.getNewPassword());
+        company.setPassword(hashedPassword);
+
+        Company updated = companyRepository.save(company);
+        log.info("Mot de passe modifié avec succès pour la société : {}", company.getCode());
+
+        return companyMapper.toProfileResponse(updated);
+    }
+}
