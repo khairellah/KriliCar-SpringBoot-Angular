@@ -5,18 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * US-1.6 : Champs modifiables du profil Admin.
+ * Volontairement absents : email, role (non modifiables) et password
+ * (géré séparément via /profile/change-password + ChangePasswordRequest).
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AdminProfileRequest {
-
-    // Champs modifiables (email et role exclus volontairement)
     private String firstName;
     private String lastName;
     private String phone;
-
-    // Changement de mot de passe : optionnel, mais sécurisé
-    private String currentPassword;
-    private String newPassword;
 }
