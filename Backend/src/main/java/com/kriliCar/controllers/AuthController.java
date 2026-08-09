@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -55,6 +56,16 @@ public class AuthController {
                     .role(userRole)
                     .code(userDetails.getCode())
                     .build());
+
+        } catch (DisabledException e) {
+            // US-1.8 : compte existant, identifiants potentiellement corrects,
+            // mais accès bloqué par l'Admin -> 403, distinct d'un simple 401.
+            Map<String, Object> body = new HashMap<>();
+            body.put("status", HttpStatus.FORBIDDEN.value());
+            body.put("error", "Forbidden");
+            body.put("message", "Ce compte a été désactivé. Veuillez contacter l'administrateur.");
+            body.put("path", "/api/v1/auth/login");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
 
         } catch (BadCredentialsException e) {
             Map<String, Object> body = new HashMap<>();

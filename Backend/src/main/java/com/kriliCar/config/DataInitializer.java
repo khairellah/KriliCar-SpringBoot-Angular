@@ -30,6 +30,7 @@ public class DataInitializer {
                         .password(passwordEncoder.encode(DEFAULT_PASSWORD))
                         .role(Role.ADMIN)
                         .image(null)
+                        .active(true) // US-1.8 : explicite, le compte Admin par défaut doit toujours être actif
                         .build();
 
                 adminRepository.save(admin);

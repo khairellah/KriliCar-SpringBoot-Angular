@@ -33,11 +33,19 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
                 String email = jwtUtils.getEmailFromJwtToken(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                // US-1.8 : un token émis avant une désactivation ne doit pas
+                // continuer à donner accès aux ressources protégées.
+                // On ne peuple PAS le SecurityContext -> la requête restera anonyme
+                // -> AuthEntryPointJwt renverra 401 sur les routes authentifiées.
+                if (userDetails.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    logger.warn("Accès refusé : compte désactivé pour l'utilisateur " + email);
+                }
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e);

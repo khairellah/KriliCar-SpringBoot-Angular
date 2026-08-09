@@ -4,6 +4,7 @@ import com.kriliCar.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,6 +35,15 @@ public abstract class AppUser extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    // --- US-1.8 : Statut d'activation du compte ---
+    // Piloté exclusivement par l'Admin (US-7.2 / US-7.4), jamais par le titulaire du compte.
+    // @ColumnDefault("true") assure que MySQL backfill les lignes existantes à TRUE
+    // lors de l'ALTER TABLE (ddl-auto=update), sans casser les comptes déjà en base.
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean active = true;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority(this.role.name()));
@@ -47,5 +57,10 @@ public abstract class AppUser extends BaseEntity implements UserDetails {
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; } // sera piloté par US-1.8 (champ `active`)
+
+    // US-1.8 : le compte n'est utilisable (login + accès aux ressources) que si active == true.
+    @Override
+    public boolean isEnabled() {
+        return Boolean.TRUE.equals(this.active);
+    }
 }
