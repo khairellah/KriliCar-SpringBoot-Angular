@@ -10,7 +10,6 @@ public class ClientProfileRequest {
     private String firstName;
     private String lastName;
     private String phone;
-    // Optionnel : si renseigné, le mot de passe est haché et mis à jour.
-    private String password;
-    // Volontairement absent : email, role -> non modifiables (US-1.5 / règle commune §2)
+    // Volontairement absents : email, role (non modifiables - règle commune §2)
+    // password retiré : géré exclusivement par changePassword() (cf. ChangePasswordRequest)
 }

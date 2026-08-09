@@ -2,7 +2,9 @@ package com.kriliCar.controllers;
 
 import com.kriliCar.dtos.ClientDisplayDTO;
 import com.kriliCar.dtos.ClientProfileRequest;
+import com.kriliCar.dtos.auth.ChangePasswordRequest;
 import com.kriliCar.services.interfaces.ClientService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +22,14 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    /**
+     * US-1.5 : Modifier le profil Client.
+     */
+    @PutMapping(
+            value = "/profile",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     @PreAuthorize("hasAuthority('CLIENT')")
     public ResponseEntity<ClientDisplayDTO> updateProfile(
             @RequestPart("data") ClientProfileRequest request,
@@ -29,5 +38,22 @@ public class ClientController {
 
         ClientDisplayDTO updated = clientService.updateProfile(principal.getName(), request, imageFile);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * US-1.5 (extension) : Changer le mot de passe.
+     */
+    @PutMapping(
+            value = "/profile/change-password",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAuthority('CLIENT')")
+    public ResponseEntity<ClientDisplayDTO> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Principal principal) {
+
+        ClientDisplayDTO response = clientService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok(response);
     }
 }
