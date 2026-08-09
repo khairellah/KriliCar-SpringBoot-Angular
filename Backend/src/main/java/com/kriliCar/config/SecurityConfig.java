@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll() // <-- ajouté (US-2.1)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/models/**").permitAll()  // Correction régression : lecture publique des modèles (US-2.2)
                         .anyRequest().authenticated()
                 );
 
