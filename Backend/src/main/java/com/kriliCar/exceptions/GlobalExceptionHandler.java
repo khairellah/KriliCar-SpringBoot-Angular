@@ -2,6 +2,7 @@ package com.kriliCar.exceptions;
 
 
 import com.kriliCar.dtos.responses.ErrorResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -95,6 +96,13 @@ public class GlobalExceptionHandler {
         String message = "La partie obligatoire '" + ex.getRequestPartName() + "' est manquante dans la requête.";
         return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
+
+    // 10. Erreurs 400 - Paramètres de requête invalides (ex: ville/statut hors enum)
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleCoyoteBadRequest(BadRequestException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     /**
      * Helper pour centraliser la création de la ResponseEntity
      */

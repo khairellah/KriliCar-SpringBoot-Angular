@@ -42,4 +42,13 @@ public interface CarService {
             Integer minMileage, Integer maxMileage,
             Integer nbrSeats, Pageable pageable
     ) throws BadRequestException;
+
+    // US-3.4 : Recherche/filtrage restreint au parc de la Company authentifiée
+    Page<CarDTO> searchMyFleet(
+            String brand, String model,
+            Double minPrice, Double maxPrice,
+            Integer minMileage, Integer maxMileage,
+            Integer nbrSeats, String availability,
+            Authentication authentication, Pageable pageable
+    ) throws BadRequestException;
 }

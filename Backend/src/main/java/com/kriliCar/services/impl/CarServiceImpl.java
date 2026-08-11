@@ -269,6 +269,41 @@ public class CarServiceImpl implements CarService {
     }
 
     // ------------------------------------------------------------------
+    // searchMyFleet : US-3.4 — catalogue Company, filtres réutilisés de
+    // searchCars, scope auto-restreint via le token (jamais un paramètre libre)
+    // ------------------------------------------------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CarDTO> searchMyFleet(String brand, String model,
+                                      Double minPrice, Double maxPrice,
+                                      Integer minMileage, Integer maxMileage,
+                                      Integer nbrSeats, String availability,
+                                      Authentication authentication, Pageable pageable) throws BadRequestException {
+
+        Company company = companyRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "email", authentication.getName()));
+
+        CarAvailability statusEnum = null;
+        if (availability != null && !availability.trim().isEmpty()) {
+            try {
+                statusEnum = CarAvailability.valueOf(availability.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Le statut spécifié '" + availability + "' n'est pas valide.");
+            }
+        }
+
+        return carRepository.searchCompanyCars(
+                company.getCode(),
+                brand, model,
+                minPrice, maxPrice,
+                minMileage, maxMileage,
+                nbrSeats,
+                statusEnum,
+                pageable
+        ).map(carMapper::toDTO);
+    }
+
+    // ------------------------------------------------------------------
     // KC-20 : validation stricte du type de fichier image
     // ------------------------------------------------------------------
     private void validateImageFile(MultipartFile file) {

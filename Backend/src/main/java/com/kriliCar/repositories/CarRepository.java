@@ -51,4 +51,30 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("status") CarAvailability status,
             Pageable pageable
     );
+
+    // US-3.4 : Catalogue Company - mêmes filtres que searchCars, mais restreint
+    // à la Company authentifiée et sans contrainte de statut (elle doit voir
+    // tout son parc : AVAILABLE, MAINTENANCE, RESERVED)
+    @Query("SELECT c FROM Car c WHERE " +
+            "c.company.code = :companyCode AND " +
+            "(:brand IS NULL OR :brand = '' OR LOWER(c.brand.name) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
+            "(:model IS NULL OR :model = '' OR LOWER(c.model.name) LIKE LOWER(CONCAT('%', :model, '%'))) AND " +
+            "(:minPrice IS NULL OR c.price >= :minPrice) AND " +
+            "(:maxPrice IS NULL OR c.price <= :maxPrice) AND " +
+            "(:minMileage IS NULL OR c.mileage >= :minMileage) AND " +
+            "(:maxMileage IS NULL OR c.mileage <= :maxMileage) AND " +
+            "(:nbrSeats IS NULL OR c.nbrSeats = :nbrSeats) AND " +
+            "(:status IS NULL OR c.availability = :status)")
+    Page<Car> searchCompanyCars(
+            @Param("companyCode") String companyCode,
+            @Param("brand") String brand,
+            @Param("model") String model,
+            @Param("minPrice") Double minPrice,
+            @Param("maxPrice") Double maxPrice,
+            @Param("minMileage") Integer minMileage,
+            @Param("maxMileage") Integer maxMileage,
+            @Param("nbrSeats") Integer nbrSeats,
+            @Param("status") CarAvailability status,
+            Pageable pageable
+    );
 }

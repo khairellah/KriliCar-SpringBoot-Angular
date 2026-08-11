@@ -40,6 +40,26 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars(companyCode, pageable));
     }
 
+    // US-3.4 : Catalogue de la Company connectée (tous statuts), mêmes filtres
+    // que la recherche Client, mais scope automatiquement restreint via le token
+    @GetMapping("/my-fleet")
+    @PreAuthorize("hasAuthority('COMPANY')")
+    public ResponseEntity<Page<CarDTO>> searchMyFleet(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Integer minMileage,
+            @RequestParam(required = false) Integer maxMileage,
+            @RequestParam(required = false) Integer nbrSeats,
+            @RequestParam(required = false) String availability,
+            Authentication authentication,
+            Pageable pageable) throws BadRequestException {
+        return ResponseEntity.ok(carService.searchMyFleet(
+                brand, model, minPrice, maxPrice, minMileage, maxMileage,
+                nbrSeats, availability, authentication, pageable));
+    }
+
     @GetMapping("/{code}")
     public ResponseEntity<CarDTO> getCarByCode(@PathVariable String code) {
         return ResponseEntity.ok(carService.getCarByCode(code));
@@ -78,4 +98,5 @@ public class CarController {
         return ResponseEntity.ok(carService.searchCars(
                 brand, model, city, minPrice, maxPrice, minMileage, maxMileage, nbrSeats, pageable));
     }
+
 }
