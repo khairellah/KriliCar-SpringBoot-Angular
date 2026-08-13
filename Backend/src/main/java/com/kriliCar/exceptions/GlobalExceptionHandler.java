@@ -16,16 +16,24 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import java.util.stream.Collectors;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException; import org.springframework.http.converter.HttpMessageNotReadableException;
-
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     // 1. Erreurs 400 - Validation / Arguments incorrects
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // 🆕 1bis. Erreurs 409 - Conflit d'état métier (ex: voiture indisponible, réservation déjà confirmée...)
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     // 2. Erreurs 404 - Ressource non trouvée
@@ -63,10 +71,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, WebRequest request) {
         Throwable cause = ex.getCause();
-        if (cause instanceof InvalidFormatException) {
-            InvalidFormatException ife = (InvalidFormatException) cause;
-            if (ife.getTargetType() != null && ife.getTargetType().equals(com.kriliCar.enums.City.class)) {
-                return buildErrorResponse(HttpStatus.BAD_REQUEST, "Valeur de city invalide: " + ife.getValue(), request);
+        if (cause instanceof InvalidFormatException ife) {
+            if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+                return buildErrorResponse(HttpStatus.BAD_REQUEST,
+                        "Valeur invalide '" + ife.getValue() + "' pour le champ attendu ("
+                                + ife.getTargetType().getSimpleName() + ").", request);
             }
         }
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Requête mal formée.", request);
@@ -75,6 +84,8 @@ public class GlobalExceptionHandler {
     // 6. Fallback 500 - Erreur interne générique
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
+        // 🔧 SEULE MODIFICATION : on logue désormais la stack trace complète
+        log.error("Erreur interne non gérée sur {} : ", request.getDescription(false), ex);
         // En production, on loggue l'erreur complète mais on ne l'affiche pas à l'utilisateur
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Une erreur inattendue est survenue. Veuillez réessayer plus tard.", request);
