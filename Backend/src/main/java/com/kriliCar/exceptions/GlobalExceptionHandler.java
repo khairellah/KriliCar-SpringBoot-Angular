@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
-    // 🆕 1bis. Erreurs 409 - Conflit d'état métier (ex: voiture indisponible, réservation déjà confirmée...)
+    // 🆕 1bis. Erreurs 409 - Conflit d'état métier (ex: voiture indisponible, réservation déjà confirmée, Boost déjà demandé/actif...)
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);

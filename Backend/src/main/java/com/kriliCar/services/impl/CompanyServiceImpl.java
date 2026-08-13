@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service pour la gestion des profils Company.
@@ -46,7 +49,7 @@ public class CompanyServiceImpl implements CompanyService {
      * @param request Données de modification
      * @param imageFile Image de profil optionnelle
      * @return DTO de réponse (sans password)
-     * @throws IOException En cas d'erreur lors du traitement du fichier
+     * @throws 'IOException' En cas d'erreur lors du traitement du fichier
      */
     @Override
     @Transactional
@@ -153,6 +156,75 @@ public class CompanyServiceImpl implements CompanyService {
 
         Company updated = companyRepository.save(company);
         log.info("Mot de passe modifié avec succès pour la société : {}", company.getCode());
+
+        return companyMapper.toProfileResponse(updated);
+    }
+
+    // ------------------------- US-6.1 : DEMANDE DE BOOST -------------------------
+    @Override
+    @Transactional
+    public CompanyProfileResponse requestBoost(String email) {
+
+        Company company = companyRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "email", email));
+
+        // 1. Idempotence : Boost déjà actif
+        if (Boolean.TRUE.equals(company.getIsBooster())) {
+            throw new IllegalStateException(
+                    "Votre société bénéficie déjà de l'option Boost. Aucune nouvelle demande n'est nécessaire.");
+        }
+
+        // 2. Idempotence : demande déjà en attente
+        if (Boolean.TRUE.equals(company.getBoostRequested())) {
+            throw new IllegalStateException(
+                    "Une demande de Boost est déjà en attente de validation par l'administrateur.");
+        }
+
+        // 3. Enregistrement de la demande
+        company.setBoostRequested(true);
+        company.setBoostRequestedAt(LocalDateTime.now());
+
+        Company updated = companyRepository.save(company);
+        log.info("Demande de Boost enregistrée pour la société : {}", company.getCode());
+
+        return companyMapper.toProfileResponse(updated);
+    }
+
+    // ------------------------- US-6.2 : LISTE DES DEMANDES EN ATTENTE -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyProfileResponse> getPendingBoostRequests() {
+        return companyRepository.findByBoostRequestedTrue().stream()
+                .map(companyMapper::toProfileResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ------------------------- US-6.2 : VALIDATION/ACTIVATION PAR L'ADMIN -------------------------
+    @Override
+    @Transactional
+    public CompanyProfileResponse activateBoost(String code) {
+
+        Company company = companyRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "code", code));
+
+        // 1. Idempotence : Boost déjà actif
+        if (Boolean.TRUE.equals(company.getIsBooster())) {
+            throw new IllegalStateException("Cette société bénéficie déjà de l'option Boost.");
+        }
+
+        // 2. Cohérence du flux en 2 temps : pas de demande en attente = rien à valider
+        if (!Boolean.TRUE.equals(company.getBoostRequested())) {
+            throw new IllegalStateException(
+                    "Aucune demande de Boost en attente pour cette société. Impossible d'activer.");
+        }
+
+        // 3. Activation
+        company.setIsBooster(true);
+        company.setBoostRequested(false);
+        company.setBoostActivatedAt(LocalDateTime.now());
+
+        Company updated = companyRepository.save(company);
+        log.info("Boost activé par l'administrateur pour la société : {}", company.getCode());
 
         return companyMapper.toProfileResponse(updated);
     }

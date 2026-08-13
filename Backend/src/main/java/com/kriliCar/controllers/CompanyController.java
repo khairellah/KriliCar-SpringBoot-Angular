@@ -21,6 +21,7 @@ import java.security.Principal;
  * Endpoints :
  * - PUT /api/v1/companies/profile : Modification du profil + image
  * - PUT /api/v1/companies/profile/change-password : Changement sécurisé du mot de passe
+ * - POST /api/v1/companies/boost/request            : Demande d'activation du Boost (US-6.1)
  */
 @RestController
 @RequestMapping("/api/v1/companies")
@@ -82,6 +83,28 @@ public class CompanyController {
 
         String email = principal.getName(); // Email du token JWT
         CompanyProfileResponse response = companyService.changePassword(email, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * US-6.1 : Demande d'activation du Boost.
+     *
+     * ✅ Authentification requise + rôle COMPANY
+     * ✅ La Company ne peut demander le Boost que pour son propre compte (email du token)
+     * ✅ Idempotence gérée en service (409 si déjà actif ou déjà en attente)
+     * ✅ Ne positionne jamais isBooster directement : validation Admin requise (US-6.2)
+     *
+     * @param principal Contexte de sécurité (email du token JWT)
+     * @return DTO reflétant le nouvel état de la demande (boostRequested = true)
+     */
+    @PostMapping(
+            value = "/boost/request",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAuthority('COMPANY')")
+    public ResponseEntity<CompanyProfileResponse> requestBoost(Principal principal) {
+        String email = principal.getName();
+        CompanyProfileResponse response = companyService.requestBoost(email);
         return ResponseEntity.ok(response);
     }
 }

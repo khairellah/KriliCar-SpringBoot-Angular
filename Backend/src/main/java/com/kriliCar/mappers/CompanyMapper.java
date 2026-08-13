@@ -39,6 +39,9 @@ public interface CompanyMapper {
                 .city(company.getCity())
                 .description(company.getDescription())
                 .isBooster(company.getIsBooster())
+                .boostRequested(company.getBoostRequested())
+                .boostRequestedAt(company.getBoostRequestedAt())
+                .boostActivatedAt(company.getBoostActivatedAt())
                 .updatedAt(company.getUpdatedAt())
                 .build();
     }
