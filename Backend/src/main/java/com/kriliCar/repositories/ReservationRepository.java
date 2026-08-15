@@ -39,4 +39,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     // US-5.7 : Comptage des réservations PENDING pour une Company (badge de notification)
     long countByCarCompanyAndStatus(Company company, ReservationStatus status);
+
+    // --- US-8.1 : KPI globaux Admin ---
+    long countByStatus(ReservationStatus status);
+    long countByStatusIn(List<ReservationStatus> statuses);
 }

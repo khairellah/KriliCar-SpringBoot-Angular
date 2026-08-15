@@ -24,4 +24,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     // --- US-7.4 : nécessaire pour l'activation/désactivation par l'Admin ---
     Optional<Client> findByCode(String code);
+
+    // --- US-8.1 : KPI globaux Admin ---
+    long countByActive(Boolean active);
 }

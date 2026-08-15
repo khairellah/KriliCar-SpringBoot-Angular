@@ -81,4 +81,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
 
     // US-7.5 : liste complète (non paginée) des voitures d'une société, pour la vue détail Admin
     List<Car> findByCompany_Code(String companyCode);
+
+    // --- US-8.1 : KPI globaux Admin ---
+    long countByAvailability(CarAvailability availability);
 }

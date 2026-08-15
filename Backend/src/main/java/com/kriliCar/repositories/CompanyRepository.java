@@ -30,4 +30,8 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
             @Param("active") Boolean active,
             @Param("boosted") Boolean boosted
     );
+
+    // --- US-8.1 : KPI globaux Admin ---
+    long countByActive(Boolean active);
+    long countByIsBooster(Boolean isBooster);
 }
