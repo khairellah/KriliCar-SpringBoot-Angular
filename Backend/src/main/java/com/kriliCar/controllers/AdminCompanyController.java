@@ -48,6 +48,28 @@ public class AdminCompanyController {
     }
 
     /**
+     * US-7.2 : Active le compte d'une Company.
+     * 409 si déjà active (idempotence).
+     */
+    @PatchMapping(value = "/{code}/activate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<CompanyAdminSummaryDTO> activateCompany(@PathVariable String code) {
+        return ResponseEntity.ok(companyService.setCompanyActiveStatus(code, true));
+    }
+
+    /**
+     * US-7.2 : Désactive le compte d'une Company (blocage d'accès sans suppression des données).
+     * 409 si déjà désactivée (idempotence).
+     * Effet immédiat : login bloqué (403 via DisabledException) + tout JWT déjà émis
+     * devient inopérant dès la requête suivante (JwtAuthTokenFilter vérifie isEnabled()).
+     */
+    @PatchMapping(value = "/{code}/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<CompanyAdminSummaryDTO> deactivateCompany(@PathVariable String code) {
+        return ResponseEntity.ok(companyService.setCompanyActiveStatus(code, false));
+    }
+
+    /**
      * US-6.2 : Liste des sociétés ayant une demande de Boost en attente.
      * Permet à l'Admin de visualiser les demandes à traiter (triables côté front
      * sur boostRequestedAt pour prioriser les plus anciennes).

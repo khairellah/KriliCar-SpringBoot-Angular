@@ -96,4 +96,17 @@ public interface CompanyService {
      * @param boosted true = boostées uniquement, false = non boostées uniquement, null = toutes
      */
     List<CompanyAdminSummaryDTO> getCompanies(Boolean active, Boolean boosted);
+
+    /**
+     * US-7.2 : Active ou désactive le compte d'une Company.
+     *
+     * Règles métier :
+     * - Idempotence stricte : si le compte est déjà dans l'état demandé, 409 Conflict.
+     * - Ne supprime aucune donnée (voitures, réservations conservées) : bloque uniquement
+     *   l'accès (login + toute requête authentifiée via JwtAuthTokenFilter, déjà en place).
+     *
+     * @param code   Code métier de la Company
+     * @param active true = activation, false = désactivation
+     */
+    CompanyAdminSummaryDTO setCompanyActiveStatus(String code, boolean active);
 }

@@ -238,4 +238,25 @@ public class CompanyServiceImpl implements CompanyService {
                 .map(companyMapper::toAdminSummary)
                 .collect(Collectors.toList());
     }
+
+    // ------------------------- US-7.2 : ACTIVATION / DÉSACTIVATION (ADMIN) -------------------------
+    @Override
+    @Transactional
+    public CompanyAdminSummaryDTO setCompanyActiveStatus(String code, boolean active) {
+
+        Company company = companyRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "code", code));
+
+        if (Boolean.valueOf(active).equals(company.getActive())) {
+            String state = active ? "déjà active" : "déjà désactivée";
+            throw new IllegalStateException("Cette société est " + state + ".");
+        }
+
+        company.setActive(active);
+        Company updated = companyRepository.save(company);
+
+        log.info("Statut du compte Company {} modifié par l'Admin -> active={}", company.getCode(), active);
+
+        return companyMapper.toAdminSummary(updated);
+    }
 }
