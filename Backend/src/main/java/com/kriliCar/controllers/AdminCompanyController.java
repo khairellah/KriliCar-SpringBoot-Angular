@@ -1,6 +1,7 @@
 package com.kriliCar.controllers;
 
 import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
+import com.kriliCar.dtos.responses.CompanyDetailResponse;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.services.interfaces.CompanyService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,15 @@ public class AdminCompanyController {
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) Boolean boosted) {
         return ResponseEntity.ok(companyService.getCompanies(active, boosted));
+    }
+
+    /**
+     * US-7.5 : Détail complet d'une société (profil, voitures, statistiques).
+     */
+    @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<CompanyDetailResponse> getCompanyDetail(@PathVariable String code) {
+        return ResponseEntity.ok(companyService.getCompanyDetail(code));
     }
 
     /**

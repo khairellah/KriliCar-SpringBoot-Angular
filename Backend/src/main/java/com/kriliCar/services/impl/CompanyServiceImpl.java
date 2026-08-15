@@ -3,12 +3,21 @@ package com.kriliCar.services.impl;
 import com.kriliCar.dtos.CompanyProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
 import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
+import com.kriliCar.dtos.responses.CompanyDetailResponse;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
+import com.kriliCar.dtos.responses.CompanyStatsDTO;
+import com.kriliCar.entities.Car;
 import com.kriliCar.entities.Company;
+import com.kriliCar.entities.Reservation;
+import com.kriliCar.enums.CarAvailability;
+import com.kriliCar.enums.ReservationStatus;
 import com.kriliCar.exceptions.ResourceNotFoundException;
 import com.kriliCar.exceptions.UnauthorizedActionException;
+import com.kriliCar.mappers.CarMapper;
 import com.kriliCar.mappers.CompanyMapper;
+import com.kriliCar.repositories.CarRepository;
 import com.kriliCar.repositories.CompanyRepository;
+import com.kriliCar.repositories.ReservationRepository;
 import com.kriliCar.services.interfaces.CompanyService;
 import com.kriliCar.services.interfaces.FileService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +47,11 @@ public class CompanyServiceImpl implements CompanyService {
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
     private final CompanyMapper companyMapper; // MapStruct pour DTO
+
+    // 🆕 Dépendances nécessaires à l'agrégation US-7.5 (voitures + réservations)
+    private final CarRepository carRepository;
+    private final CarMapper carMapper;
+    private final ReservationRepository reservationRepository;
 
     /**
      * US-1.4 : Modifier le profil Company.
@@ -258,5 +272,51 @@ public class CompanyServiceImpl implements CompanyService {
         log.info("Statut du compte Company {} modifié par l'Admin -> active={}", company.getCode(), active);
 
         return companyMapper.toAdminSummary(updated);
+    }
+
+    // ------------------------- US-7.5 : DÉTAIL COMPLET (ADMIN) -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyDetailResponse getCompanyDetail(String code) {
+
+        Company company = companyRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "code", code));
+
+        List<Car> cars = carRepository.findByCompany_Code(code);
+        List<Reservation> reservations = reservationRepository.findByCarCompany(company);
+
+        CompanyStatsDTO stats = CompanyStatsDTO.builder()
+                .totalCars(cars.size())
+                .availableCars(cars.stream().filter(c -> c.getAvailability() == CarAvailability.AVAILABLE).count())
+                .maintenanceCars(cars.stream().filter(c -> c.getAvailability() == CarAvailability.MAINTENANCE).count())
+                .reservedCars(cars.stream().filter(c -> c.getAvailability() == CarAvailability.RESERVED).count())
+                .totalReservations(reservations.size())
+                .pendingReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING).count())
+                .confirmedReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.CONFIRMED).count())
+                .cancelledReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.CANCELLED).count())
+                .completedReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.COMPLETED).count())
+                .build();
+
+        return CompanyDetailResponse.builder()
+                .code(company.getCode())
+                .companyName(company.getCompanyName())
+                .firstName(company.getFirstName())
+                .lastName(company.getLastName())
+                .email(company.getEmail())
+                .phone(company.getPhone())
+                .image(company.getImage())
+                .landline(company.getLandline())
+                .city(company.getCity())
+                .description(company.getDescription())
+                .active(company.getActive())
+                .isBooster(company.getIsBooster())
+                .boostRequested(company.getBoostRequested())
+                .boostRequestedAt(company.getBoostRequestedAt())
+                .boostActivatedAt(company.getBoostActivatedAt())
+                .createdAt(company.getCreatedAt())
+                .updatedAt(company.getUpdatedAt())
+                .cars(cars.stream().map(carMapper::toDTO).collect(Collectors.toList()))
+                .stats(stats)
+                .build();
     }
 }

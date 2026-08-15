@@ -4,6 +4,7 @@ import com.kriliCar.dtos.ClientDisplayDTO;
 import com.kriliCar.dtos.ClientProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
 import com.kriliCar.dtos.responses.ClientAdminSummaryDTO;
+import com.kriliCar.dtos.responses.ClientDetailResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -35,4 +36,12 @@ public interface ClientService {
      * @param active true = activation, false = désactivation
      */
     ClientAdminSummaryDTO setClientActiveStatus(String code, boolean active);
+
+    /**
+     * US-7.5 : Détail complet d'un client pour l'Admin.
+     * Regroupe : profil complet, réservations, wishlist, statistiques.
+     *
+     * @param code Code métier du Client
+     */
+    ClientDetailResponse getClientDetail(String code);
 }

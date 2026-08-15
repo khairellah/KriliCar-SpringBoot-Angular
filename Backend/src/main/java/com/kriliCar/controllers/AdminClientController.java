@@ -1,6 +1,7 @@
 package com.kriliCar.controllers;
 
 import com.kriliCar.dtos.responses.ClientAdminSummaryDTO;
+import com.kriliCar.dtos.responses.ClientDetailResponse;
 import com.kriliCar.services.interfaces.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -39,6 +40,15 @@ public class AdminClientController {
     public ResponseEntity<List<ClientAdminSummaryDTO>> getClients(
             @RequestParam(required = false) Boolean active) {
         return ResponseEntity.ok(clientService.getClients(active));
+    }
+
+    /**
+     * US-7.5 : Détail complet d'un client (profil, réservations, wishlist, statistiques).
+     */
+    @GetMapping(value = "/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ClientDetailResponse> getClientDetail(@PathVariable String code) {
+        return ResponseEntity.ok(clientService.getClientDetail(code));
     }
 
     /**

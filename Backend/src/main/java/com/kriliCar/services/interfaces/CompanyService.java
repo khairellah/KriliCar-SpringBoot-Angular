@@ -3,6 +3,7 @@ package com.kriliCar.services.interfaces;
 import com.kriliCar.dtos.CompanyProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
 import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
+import com.kriliCar.dtos.responses.CompanyDetailResponse;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.exceptions.UnauthorizedActionException;
 import org.springframework.web.multipart.MultipartFile;
@@ -109,4 +110,13 @@ public interface CompanyService {
      * @param active true = activation, false = désactivation
      */
     CompanyAdminSummaryDTO setCompanyActiveStatus(String code, boolean active);
+
+    /**
+     * US-7.5 : Détail complet d'une société pour l'Admin.
+     * Regroupe : profil complet, liste des voitures, statistiques (voitures par état,
+     * réservations par statut). Vue agrégée en lecture seule.
+     *
+     * @param code Code métier de la Company
+     */
+    CompanyDetailResponse getCompanyDetail(String code);
 }

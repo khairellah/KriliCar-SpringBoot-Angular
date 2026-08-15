@@ -1,14 +1,24 @@
 package com.kriliCar.services.impl;
 
+import com.kriliCar.dtos.CarDTO;
 import com.kriliCar.dtos.ClientDisplayDTO;
 import com.kriliCar.dtos.ClientProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
 import com.kriliCar.dtos.responses.ClientAdminSummaryDTO;
+import com.kriliCar.dtos.responses.ClientDetailResponse;
+import com.kriliCar.dtos.responses.ClientStatsDTO;
 import com.kriliCar.entities.Client;
+import com.kriliCar.entities.Reservation;
+import com.kriliCar.entities.WishList;
+import com.kriliCar.enums.ReservationStatus;
 import com.kriliCar.exceptions.ResourceNotFoundException;
 import com.kriliCar.exceptions.UnauthorizedActionException;
+import com.kriliCar.mappers.CarMapper;
 import com.kriliCar.mappers.ClientMapper;
+import com.kriliCar.mappers.ReservationMapper;
 import com.kriliCar.repositories.ClientRepository;
+import com.kriliCar.repositories.ReservationRepository;
+import com.kriliCar.repositories.WishlistRepository;
 import com.kriliCar.services.interfaces.ClientService;
 import com.kriliCar.services.interfaces.FileService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +42,12 @@ public class ClientServiceImpl implements ClientService {
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
     private final ClientMapper clientMapper;
+
+    // 🆕 Dépendances nécessaires à l'agrégation US-7.5 (réservations + wishlist)
+    private final ReservationRepository reservationRepository;
+    private final ReservationMapper reservationMapper;
+    private final WishlistRepository wishlistRepository;
+    private final CarMapper carMapper;
 
     /**
      * US-1.5 : Modifier le profil Client (infos perso + image).
@@ -124,5 +140,46 @@ public class ClientServiceImpl implements ClientService {
         log.info("Statut du compte Client {} modifié par l'Admin -> active={}", client.getCode(), active);
 
         return clientMapper.toAdminSummary(updated);
+    }
+
+    // ------------------------- US-7.5 : DÉTAIL COMPLET (ADMIN) -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public ClientDetailResponse getClientDetail(String code) {
+
+        Client client = clientRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", "code", code));
+
+        List<Reservation> reservations = reservationRepository.findByClient(client);
+        List<WishList> wishlistEntries = wishlistRepository.findByClientId(client.getId());
+
+        List<CarDTO> wishlist = wishlistEntries.stream()
+                .map(WishList::getCar)
+                .map(carMapper::toDTO)
+                .collect(Collectors.toList());
+
+        ClientStatsDTO stats = ClientStatsDTO.builder()
+                .totalReservations(reservations.size())
+                .pendingReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING).count())
+                .confirmedReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.CONFIRMED).count())
+                .cancelledReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.CANCELLED).count())
+                .completedReservations(reservations.stream().filter(r -> r.getStatus() == ReservationStatus.COMPLETED).count())
+                .wishlistCount(wishlistEntries.size())
+                .build();
+
+        return ClientDetailResponse.builder()
+                .code(client.getCode())
+                .firstName(client.getFirstName())
+                .lastName(client.getLastName())
+                .email(client.getEmail())
+                .phone(client.getPhone())
+                .image(client.getImage())
+                .active(client.getActive())
+                .createdAt(client.getCreatedAt())
+                .updatedAt(client.getUpdatedAt())
+                .reservations(reservationMapper.toDTOList(reservations))
+                .wishlist(wishlist)
+                .stats(stats)
+                .build();
     }
 }

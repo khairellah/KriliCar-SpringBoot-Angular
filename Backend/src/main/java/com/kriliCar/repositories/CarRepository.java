@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -77,4 +78,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             @Param("status") CarAvailability status,
             Pageable pageable
     );
+
+    // US-7.5 : liste complète (non paginée) des voitures d'une société, pour la vue détail Admin
+    List<Car> findByCompany_Code(String companyCode);
 }
