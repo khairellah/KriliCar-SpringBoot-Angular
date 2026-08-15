@@ -40,4 +40,26 @@ public class AdminClientController {
             @RequestParam(required = false) Boolean active) {
         return ResponseEntity.ok(clientService.getClients(active));
     }
+
+    /**
+     * US-7.4 : Active le compte d'un Client.
+     * 409 si déjà actif (idempotence).
+     */
+    @PatchMapping(value = "/{code}/activate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ClientAdminSummaryDTO> activateClient(@PathVariable String code) {
+        return ResponseEntity.ok(clientService.setClientActiveStatus(code, true));
+    }
+
+    /**
+     * US-7.4 : Désactive le compte d'un Client (blocage d'accès sans suppression des données).
+     * 409 si déjà désactivé (idempotence).
+     * Effet immédiat : login bloqué (403 via DisabledException) + tout JWT déjà émis
+     * devient inopérant dès la requête suivante (JwtAuthTokenFilter vérifie isEnabled()).
+     */
+    @PatchMapping(value = "/{code}/deactivate", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ClientAdminSummaryDTO> deactivateClient(@PathVariable String code) {
+        return ResponseEntity.ok(clientService.setClientActiveStatus(code, false));
+    }
 }

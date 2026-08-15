@@ -104,4 +104,25 @@ public class ClientServiceImpl implements ClientService {
                 .map(clientMapper::toAdminSummary)
                 .collect(Collectors.toList());
     }
+
+    // ------------------------- US-7.4 : ACTIVATION / DÉSACTIVATION (ADMIN) -------------------------
+    @Override
+    @Transactional
+    public ClientAdminSummaryDTO setClientActiveStatus(String code, boolean active) {
+
+        Client client = clientRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", "code", code));
+
+        if (Boolean.valueOf(active).equals(client.getActive())) {
+            String state = active ? "déjà actif" : "déjà désactivé";
+            throw new IllegalStateException("Ce compte client est " + state + ".");
+        }
+
+        client.setActive(active);
+        Client updated = clientRepository.save(client);
+
+        log.info("Statut du compte Client {} modifié par l'Admin -> active={}", client.getCode(), active);
+
+        return clientMapper.toAdminSummary(updated);
+    }
 }

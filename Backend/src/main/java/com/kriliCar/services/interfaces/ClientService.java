@@ -22,4 +22,17 @@ public interface ClientService {
      * @param active true = actifs uniquement, false = inactifs uniquement, null = tous
      */
     List<ClientAdminSummaryDTO> getClients(Boolean active);
+
+    /**
+     * US-7.4 : Active ou désactive le compte d'un Client.
+     *
+     * Règles métier :
+     * - Idempotence stricte : si le compte est déjà dans l'état demandé, 409 Conflict.
+     * - Ne supprime aucune donnée (réservations, wishlist conservées) : bloque uniquement
+     *   l'accès (login + toute requête authentifiée via JwtAuthTokenFilter, déjà en place).
+     *
+     * @param code   Code métier du Client
+     * @param active true = activation, false = désactivation
+     */
+    ClientAdminSummaryDTO setClientActiveStatus(String code, boolean active);
 }

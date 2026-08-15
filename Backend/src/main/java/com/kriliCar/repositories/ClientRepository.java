@@ -21,4 +21,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
             "(:active IS NULL OR c.active = :active) " +
             "ORDER BY c.createdAt DESC")
     List<Client> findClientsByFilter(@Param("active") Boolean active);
+
+    // --- US-7.4 : nécessaire pour l'activation/désactivation par l'Admin ---
+    Optional<Client> findByCode(String code);
 }
