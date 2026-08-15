@@ -15,6 +15,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import java.util.stream.Collectors;
+
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -112,6 +114,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleCoyoteBadRequest(BadRequestException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    // 🆕 9. Erreurs 400 - Paramètre de requête (@RequestParam) au mauvais type
+    // Ex: GET /api/v1/admins/companies?active=abss -> Boolean attendu, String reçu
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex, WebRequest request) {
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "attendu";
+        String message = String.format(
+                "Le paramètre '%s' a une valeur invalide '%s'. Type attendu : %s.",
+                ex.getName(), ex.getValue(), requiredType
+        );
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     /**

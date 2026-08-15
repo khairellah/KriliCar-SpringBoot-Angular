@@ -2,6 +2,7 @@ package com.kriliCar.services.impl;
 
 import com.kriliCar.dtos.CompanyProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
+import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.entities.Company;
 import com.kriliCar.exceptions.ResourceNotFoundException;
@@ -227,5 +228,14 @@ public class CompanyServiceImpl implements CompanyService {
         log.info("Boost activé par l'administrateur pour la société : {}", company.getCode());
 
         return companyMapper.toProfileResponse(updated);
+    }
+
+    // ------------------------- US-7.1 : LISTE FILTRÉE (ADMIN) -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyAdminSummaryDTO> getCompanies(Boolean active, Boolean boosted) {
+        return companyRepository.findCompaniesByFilters(active, boosted).stream()
+                .map(companyMapper::toAdminSummary)
+                .collect(Collectors.toList());
     }
 }

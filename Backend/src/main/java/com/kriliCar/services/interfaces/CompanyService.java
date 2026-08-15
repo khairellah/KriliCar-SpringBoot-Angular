@@ -2,6 +2,7 @@ package com.kriliCar.services.interfaces;
 
 import com.kriliCar.dtos.CompanyProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
+import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.exceptions.UnauthorizedActionException;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,4 +87,13 @@ public interface CompanyService {
      * @return DTO reflétant le nouvel état (Boost actif)
      */
     CompanyProfileResponse activateBoost(String code);
+
+    /**
+     * US-7.1 : Liste des sociétés, filtrable par statut de compte et statut Boost.
+     * Filtres optionnels et combinables ; null = pas de restriction sur ce critère.
+     *
+     * @param active  true = actives uniquement, false = inactives uniquement, null = toutes
+     * @param boosted true = boostées uniquement, false = non boostées uniquement, null = toutes
+     */
+    List<CompanyAdminSummaryDTO> getCompanies(Boolean active, Boolean boosted);
 }

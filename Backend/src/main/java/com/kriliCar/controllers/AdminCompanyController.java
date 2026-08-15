@@ -1,5 +1,6 @@
 package com.kriliCar.controllers;
 
+import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.services.interfaces.CompanyService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,25 @@ import java.util.List;
 public class AdminCompanyController {
 
     private final CompanyService companyService;
+
+    /**
+     * US-7.1 : Liste des sociétés, avec filtres optionnels et combinables :
+     * - active  : true/false (statut du compte) — absent = toutes
+     * - boosted : true/false (statut Boost)       — absent = toutes
+     *
+     * Exemples :
+     *   GET /api/v1/admins/companies                          → toutes les sociétés
+     *   GET /api/v1/admins/companies?active=false              → comptes désactivés uniquement
+     *   GET /api/v1/admins/companies?boosted=true               → sociétés boostées uniquement
+     *   GET /api/v1/admins/companies?active=true&boosted=false → actives ET non boostées
+     */
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<CompanyAdminSummaryDTO>> getCompanies(
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) Boolean boosted) {
+        return ResponseEntity.ok(companyService.getCompanies(active, boosted));
+    }
 
     /**
      * US-6.2 : Liste des sociétés ayant une demande de Boost en attente.

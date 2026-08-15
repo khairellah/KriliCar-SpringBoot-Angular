@@ -1,5 +1,6 @@
 package com.kriliCar.mappers;
 
+import com.kriliCar.dtos.responses.CompanyAdminSummaryDTO;
 import com.kriliCar.dtos.responses.CompanyProfileResponse;
 import com.kriliCar.entities.Company;
 import org.mapstruct.Mapper;
@@ -46,6 +47,26 @@ public interface CompanyMapper {
                 .build();
     }
 
+    // --- US-7.1 : vue de synthèse Admin (inclut `active`) ---
+    default CompanyAdminSummaryDTO toAdminSummary(Company company) {
+        if (company == null) {
+            return null;
+        }
+        return CompanyAdminSummaryDTO.builder()
+                .code(company.getCode())
+                .companyName(company.getCompanyName())
+                .firstName(company.getFirstName())
+                .lastName(company.getLastName())
+                .email(company.getEmail())
+                .phone(company.getPhone())
+                .city(company.getCity())
+                .active(company.getActive())
+                .isBooster(company.getIsBooster())
+                .boostRequested(company.getBoostRequested())
+                .createdAt(company.getCreatedAt())
+                .updatedAt(company.getUpdatedAt())
+                .build();
+    }
 
 }
  
