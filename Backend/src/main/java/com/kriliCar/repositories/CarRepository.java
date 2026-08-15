@@ -84,4 +84,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
 
     // --- US-8.1 : KPI globaux Admin ---
     long countByAvailability(CarAvailability availability);
+
+    // --- US-8.2 : KPI Company (scopé, jamais de companyCode libre côté controller) ---
+    long countByCompany_Code(String companyCode);
+    long countByCompany_CodeAndAvailability(String companyCode, CarAvailability availability);
 }

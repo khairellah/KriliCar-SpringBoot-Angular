@@ -43,4 +43,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     // --- US-8.1 : KPI globaux Admin ---
     long countByStatus(ReservationStatus status);
     long countByStatusIn(List<ReservationStatus> statuses);
+
+    // --- US-8.2 : KPI Company (total réservations du parc) ---
+    long countByCarCompany(Company company);
 }
