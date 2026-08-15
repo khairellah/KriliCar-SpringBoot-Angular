@@ -1,6 +1,7 @@
 package com.kriliCar.mappers;
 
 import com.kriliCar.dtos.ClientDisplayDTO;
+import com.kriliCar.dtos.responses.ClientAdminSummaryDTO;
 import com.kriliCar.entities.Client;
 import org.mapstruct.Mapper;
 
@@ -30,5 +31,22 @@ public interface ClientMapper {
         dto.setImage(client.getImage());
         dto.setRole(client.getRole());
         return dto;
+    }
+
+    // --- US-7.3 : vue de synthèse Admin (inclut `active`) ---
+    default ClientAdminSummaryDTO toAdminSummary(Client client) {
+        if (client == null) {
+            return null;
+        }
+        return ClientAdminSummaryDTO.builder()
+                .code(client.getCode())
+                .firstName(client.getFirstName())
+                .lastName(client.getLastName())
+                .email(client.getEmail())
+                .phone(client.getPhone())
+                .active(client.getActive())
+                .createdAt(client.getCreatedAt())
+                .updatedAt(client.getUpdatedAt())
+                .build();
     }
 }

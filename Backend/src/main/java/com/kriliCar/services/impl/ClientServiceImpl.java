@@ -3,6 +3,7 @@ package com.kriliCar.services.impl;
 import com.kriliCar.dtos.ClientDisplayDTO;
 import com.kriliCar.dtos.ClientProfileRequest;
 import com.kriliCar.dtos.auth.ChangePasswordRequest;
+import com.kriliCar.dtos.responses.ClientAdminSummaryDTO;
 import com.kriliCar.entities.Client;
 import com.kriliCar.exceptions.ResourceNotFoundException;
 import com.kriliCar.exceptions.UnauthorizedActionException;
@@ -19,6 +20,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +94,14 @@ public class ClientServiceImpl implements ClientService {
         log.info("Mot de passe modifié avec succès pour le client : {}", saved.getCode());
 
         return clientMapper.toDisplayDTO(saved);
+    }
+
+    // ------------------------- US-7.3 : LISTE FILTRÉE (ADMIN) -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClientAdminSummaryDTO> getClients(Boolean active) {
+        return clientRepository.findClientsByFilter(active).stream()
+                .map(clientMapper::toAdminSummary)
+                .collect(Collectors.toList());
     }
 }
