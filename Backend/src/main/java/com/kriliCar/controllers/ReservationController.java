@@ -5,6 +5,7 @@ import com.kriliCar.dtos.responses.PendingReservationCountDTO;
 import com.kriliCar.enums.ReservationStatus;
 import com.kriliCar.exceptions.ResourceNotFoundException;
 import com.kriliCar.services.interfaces.ReservationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class ReservationController {
     @PostMapping
     @PreAuthorize("hasAuthority('CLIENT')")
     public ResponseEntity<ReservationDTO> createReservation(
-            @RequestBody ReservationDTO dto,
+            @Valid @RequestBody ReservationDTO dto, // 🔧 @Valid ajouté (US-9.2)
             Authentication auth
     ) throws Exception {
         ReservationDTO created = reservationService.createReservation(dto, auth.getName());

@@ -89,7 +89,7 @@ public class AuthController {
     // POST /api/v1/auth/register/company
     @PostMapping(value = "/register/company", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CompanyRegistrationResponseDTO> registerCompany(
-            @RequestPart("company") CompanyRegistrationDTO registrationDTO,
+            @Valid @RequestPart("company") CompanyRegistrationDTO registrationDTO, // 🔧 @Valid ajouté (US-9.2)
             @RequestPart(value = "image", required = false) MultipartFile imageFile) throws IOException {
 
         CompanyRegistrationResponseDTO registeredCompany = authService.registerCompany(registrationDTO, imageFile);
