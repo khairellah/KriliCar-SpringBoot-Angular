@@ -289,7 +289,12 @@ Reprend `5_Spécification_Globale_KriliCar.md` §8, avec incidence directe sur l
 
 ---
 
-## 11. Conclusion
+## 11. Méthode de travail obligatoire
+ 
+Chaque conversation de ce projet correspond à une seule User Story Angular (une conversation = une US = un commit/push dédié). 
+Si l'US n'est pas explicitement indiquée en début de conversation, la demander avant de commencer.
+
+## 12. Conclusion
 
 Ce document sert de pont entre la Spécification Globale (métier + backend) et le développement Frontend Angular. Il n'introduit **aucune nouvelle règle métier** — toute divergence apparente avec `5_Spécification_Globale_KriliCar.md` doit être considérée comme une erreur à corriger dans ce document, jamais l'inverse.
 
