@@ -1,0 +1,41 @@
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  height: 44px;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.register-links {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  padding: 8px 16px 16px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}

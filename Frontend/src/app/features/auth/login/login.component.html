@@ -1,0 +1,82 @@
+<div class="login-page">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Connexion</mat-card-title>
+      <mat-card-subtitle>Accédez à votre espace KriliCar</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            id="email"
+            autocomplete="email"
+            required
+          />
+          @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+            <mat-error>L'email est obligatoire.</mat-error>
+          }
+          @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+            <mat-error>Format d'email invalide.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="password"
+            id="password"
+            autocomplete="current-password"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="hidePassword() ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
+            [attr.aria-pressed]="!hidePassword()"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <mat-error>Le mot de passe est obligatoire.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage()) {
+          <div class="error-banner" role="alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Se connecter
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="register-links">
+      <span>Pas encore de compte ?</span>
+      <a routerLink="/register/client">Client</a>
+      <span>·</span>
+      <a routerLink="/register/company">Société</a>
+    </mat-card-actions>
+  </mat-card>
+</div>

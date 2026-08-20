@@ -285,6 +285,72 @@ Reprend `5_Spécification_Globale_KriliCar.md` §8, avec incidence directe sur l
 | Sprint F8 | KPI (dashboard Admin global + dashboard Company scopé) | US-8.1, US-8.2 ✅ disponibles |
 | Sprint F9 | Polish transverse : gestion d'erreurs globale, accessibilité, tests | US-9.x (Swagger n'a pas d'incidence Frontend directe) |
 
+Sprint F1 — Authentification & Guards (socle)
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-1.1	Login (connexion JWT)	                          POST /api/v1/auth/login
+US-1.2	Inscription Client	                            POST /api/v1/auth/register/client
+US-1.3	Inscription Company	                            POST /api/v1/auth/register/company
+US-1.4	Guards (authGuard, roleGuard) + intercepteurs (jwt.interceptor, error.interceptor) + Store NgRx session utilisateu
+
+Sprint fondateur : tout le reste de l'application dépend de ces 4 US (token, rôle, protection des routes).
+
+Sprint F1bis — Profils utilisateurs
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-1.5	Profil Client (modif infos + mot de passe)	    PUT /api/v1/clients/profile, PUT /api/v1/clients/profile/change-password
+US-1.6	Profil Admin (modif infos + mot de passe)	      PUT /api/v1/admins/profile, PUT /api/v1/admins/profile/change-password
+
+Note : Profil Company (US-1.4 côté Backend) a déjà son écran couvert par la doc §4.3 — à confirmer si tu veux le traiter ici ou séparément.
+
+Sprint F2 — Référentiel Marques / Modèles (Admin)
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-2.1	Gestion des marques (CRUD)	                    GET/POST/PUT/DELETE /api/v1/brands
+US-2.2	Gestion des modèles (CRUD, select dépendant marque)	GET/POST/PUT/DELETE /api/v1/models, /api/v1/models/brand/{brandCode}
+
+Sprint F3 — Voitures & Recherche
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-3.1	Gestion voitures Company (liste + CRUD, sans images)	POST/PUT/DELETE /api/v1/cars, GET /api/v1/cars?companyCode=...
+US-3.2	Gestion des images voiture (upload/suppression, à la création et à l'update)	Inclus dans POST/PUT /api/v1/cars, imagesToDelete par code
+US-3.3	Recherche simple/avancée publique (Client)	GET /api/v1/cars/search
+US-3.4	Mon parc (recherche interne Company, scope auto)	GET /api/v1/cars/my-fleet
+
+Sprint F4 — WishList
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-4.1	Ajout / consultation / suppression WishList (Client)	GET/POST/DELETE /api/v1/wishlist, /api/v1/wishlist/{carCode}
+
+Sprint F5 — Réservations (cycle de vie complet)
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-5.1	Création réservation (Client)	                  POST /api/v1/reservations
+US-5.2	Consultation réservations (Client + Company)	  GET /api/v1/reservations/my
+US-5.3	Détail réservation par code	                    GET /api/v1/reservations/{code}
+US-5.4	Confirmation/Annulation par Company (+ impact état voiture)	PATCH /api/v1/reservations/{code}/status
+US-5.5	Fin de réservation (COMPLETED) — affichage cycle de vie	(lecture seule côté Front, piloté backend)
+US-5.6	Annulation par Client (uniquement si PENDING)	  PATCH /api/v1/reservations/{code}/cancel
+US-5.7	Badge notification Company (compteur PENDING)	  GET /api/v1/reservations/company/pending-count
+
+Sprint F6 — Boost
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-6.1	Demande de Boost (Company)	                    POST /api/v1/companies/boost/request
+US-6.2	Demandes en attente + validation/activation (Admin)	GET /api/v1/admins/companies/boost/pending, PATCH /api/v1/admins/companies/{code}/boost/activate
+
+Sprint F7 — Gestion des comptes par l'Admin
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-7.1	Liste des sociétés filtrable (active, boosted)	GET /api/v1/admins/companies?active=&boosted=
+US-7.2	Activation / désactivation Company	            PATCH /api/v1/admins/companies/{code}/activate, .../deactivate
+US-7.3	Liste des clients filtrable (active)	          GET /api/v1/admins/clients?active=
+US-7.4	Activation / désactivation Client	              PATCH /api/v1/admins/clients/{code}/activate, .../deactivate
+US-7.5	Détail complet société + détail complet client (vues Admin)	GET /api/v1/admins/companies/{code}, GET /api/v1/admins/clients/{code}
+
+Sprint F8 — KPI / Dashboards
+US	    Écran / Fonctionnalité	                        Endpoint(s) backend
+US-8.1	Dashboard KPI globaux (Admin)	                  GET /api/v1/admins/kpi/global
+US-8.2	Dashboard KPI Company (scopé)	                  GET /api/v1/companies/kpi/my
+
+Sprint F9 — Transverse / Qualité
+US	    Écran / Fonctionnalité	                                                    Portée
+US-9.1	Gestion d'erreurs globale (mapping HTTP → UX, cf. §6 de la Spec Frontend)	  Transverse, tous écrans
+US-9.2	Accessibilité de base (labels, aria, focus management)	                    Transverse
+US-9.3	Tests (Vitest) : guards, intercepteurs, logique cycle de vie réservation	  Transverse
+
 **Constat** : l'intégralité des Sprints backend (F1 à F8) est désormais livrée et testée. Le développement Frontend peut suivre l'ordre ci-dessus sans blocage, ou être réordonné selon la priorité produit (ex: traiter F5/F6 avant F7/F8 si la mise en avant commerciale de la réservation prime sur le back-office Admin).
 
 ---
