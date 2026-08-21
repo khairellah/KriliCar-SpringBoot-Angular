@@ -5,6 +5,8 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { LoginRequest } from '../models/auth/login-request.model';
 import { JwtResponse } from '../models/auth/jwt-response.model';
+import { ClientRegistrationRequest } from '../models/auth/client-registration-request.model';
+import { ClientRegistrationResponse } from '../models/auth/client-registration-response.model';
 import { Role } from '../models/enums';
 
 const TOKEN_KEY = 'krilicar_token';
@@ -41,6 +43,32 @@ export class AuthService {
     return this.http
       .post<JwtResponse>(`${this.apiUrl}/login`, credentials)
       .pipe(tap((response) => this.setSession(response)));
+  }
+
+  /**
+   * US-1.2 : POST /api/v1/auth/register/client (multipart/form-data)
+   *
+   * ⚠️ Le contrôleur backend attend la partie JSON sous le nom "user"
+   * (AuthController#registerClient -> @RequestPart("user")), pas "client".
+   * Aucune session n'est ouverte ici : le Client doit ensuite se connecter
+   * via /login (pas d'auto-login prévu par la spec).
+   */
+  registerClient(
+    data: ClientRegistrationRequest,
+    imageFile?: File | null
+  ): Observable<ClientRegistrationResponse> {
+    const formData = new FormData();
+    formData.append(
+      'user',
+      new Blob([JSON.stringify(data)], { type: 'application/json' })
+    );
+    if (imageFile) {
+      formData.append('image', imageFile, imageFile.name);
+    }
+    return this.http.post<ClientRegistrationResponse>(
+      `${this.apiUrl}/register/client`,
+      formData
+    );
   }
 
   logout(): void {

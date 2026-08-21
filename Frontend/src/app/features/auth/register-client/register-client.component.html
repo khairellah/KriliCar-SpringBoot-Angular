@@ -1,0 +1,180 @@
+<div class="register-page">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>Créer un compte Client</mat-card-title>
+      <mat-card-subtitle>Inscription gratuite sur KriliCar</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (successMessage()) {
+        <div class="success-banner" role="status">
+          {{ successMessage() }}
+          <a routerLink="/login">Se connecter</a>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Prénom</mat-label>
+            <input matInput formControlName="firstName" id="firstName" required />
+            @if (form.controls.firstName.hasError('required') && form.controls.firstName.touched) {
+              <mat-error>Le prénom est obligatoire.</mat-error>
+            }
+            @if (form.controls.firstName.hasError('backend')) {
+              <mat-error>{{ form.controls.firstName.errors?.['backend'] }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Nom</mat-label>
+            <input matInput formControlName="lastName" id="lastName" required />
+            @if (form.controls.lastName.hasError('required') && form.controls.lastName.touched) {
+              <mat-error>Le nom est obligatoire.</mat-error>
+            }
+            @if (form.controls.lastName.hasError('backend')) {
+              <mat-error>{{ form.controls.lastName.errors?.['backend'] }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            id="email"
+            autocomplete="email"
+            required
+          />
+          @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+            <mat-error>L'email est obligatoire.</mat-error>
+          }
+          @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+            <mat-error>Format d'email invalide.</mat-error>
+          }
+          @if (form.controls.email.hasError('backend')) {
+            <mat-error>{{ form.controls.email.errors?.['backend'] }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Téléphone</mat-label>
+          <input matInput formControlName="phone" id="phone" autocomplete="tel" required />
+          @if (form.controls.phone.hasError('required') && form.controls.phone.touched) {
+            <mat-error>Le téléphone est obligatoire.</mat-error>
+          }
+          @if (form.controls.phone.hasError('pattern') && form.controls.phone.touched) {
+            <mat-error>Format de téléphone invalide.</mat-error>
+          }
+          @if (form.controls.phone.hasError('backend')) {
+            <mat-error>{{ form.controls.phone.errors?.['backend'] }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Mot de passe</mat-label>
+          <input
+            matInput
+            [type]="hidePassword() ? 'password' : 'text'"
+            formControlName="password"
+            id="password"
+            autocomplete="new-password"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="hidePassword() ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
+            [attr.aria-pressed]="!hidePassword()"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+            <mat-error>Le mot de passe est obligatoire.</mat-error>
+          }
+          @if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+            <mat-error>Le mot de passe doit contenir au moins 6 caractères.</mat-error>
+          }
+          @if (form.controls.password.hasError('backend')) {
+            <mat-error>{{ form.controls.password.errors?.['backend'] }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmer le mot de passe</mat-label>
+          <input
+            matInput
+            [type]="hideConfirmPassword() ? 'password' : 'text'"
+            formControlName="confirmPassword"
+            id="confirmPassword"
+            autocomplete="new-password"
+            required
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="hideConfirmPassword() ? 'Afficher le mot de passe' : 'Masquer le mot de passe'"
+            [attr.aria-pressed]="!hideConfirmPassword()"
+          >
+            <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.confirmPassword.hasError('required') && form.controls.confirmPassword.touched) {
+            <mat-error>La confirmation du mot de passe est obligatoire.</mat-error>
+          }
+          @if (form.hasError('passwordsMismatch') && form.controls.confirmPassword.touched) {
+            <mat-error>Les mots de passe ne correspondent pas.</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="image-upload">
+          <label for="image" class="image-upload-label">Photo de profil (optionnelle)</label>
+          <input
+            type="file"
+            id="image"
+            accept="image/*"
+            (change)="onImageSelected($event)"
+          />
+          @if (imagePreviewUrl()) {
+            <div class="image-preview">
+              <img [src]="imagePreviewUrl()" alt="Aperçu de la photo de profil" />
+              <button mat-icon-button type="button" (click)="removeImage()" aria-label="Retirer l'image">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="error-banner" role="alert">
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Créer mon compte
+          }
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="login-link">
+      <span>Déjà un compte ?</span>
+      <a routerLink="/login">Se connecter</a>
+    </mat-card-actions>
+  </mat-card>
+</div>
