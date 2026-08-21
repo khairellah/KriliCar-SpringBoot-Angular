@@ -7,6 +7,9 @@ import { LoginRequest } from '../models/auth/login-request.model';
 import { JwtResponse } from '../models/auth/jwt-response.model';
 import { ClientRegistrationRequest } from '../models/auth/client-registration-request.model';
 import { ClientRegistrationResponse } from '../models/auth/client-registration-response.model';
+import { CompanyRegistrationRequest } from '../models/auth/company-registration-request.model';
+import { CompanyRegistrationResponse } from '../models/auth/company-registration-response.model';
+
 import { Role } from '../models/enums';
 
 const TOKEN_KEY = 'krilicar_token';
@@ -67,6 +70,31 @@ export class AuthService {
     }
     return this.http.post<ClientRegistrationResponse>(
       `${this.apiUrl}/register/client`,
+      formData
+    );
+  }
+
+  /**
+   * US-1.3 : POST /api/v1/auth/register/company (multipart/form-data)
+   *
+   * ⚠️ Le contrôleur backend attend la partie JSON sous le nom "company"
+   * (AuthController#registerCompany -> @RequestPart("company")), différent de "user"
+   * utilisé pour le Client. Aucune session n'est ouverte ici (pas d'auto-login).
+   */
+  registerCompany(
+    data: CompanyRegistrationRequest,
+    imageFile?: File | null
+  ): Observable<CompanyRegistrationResponse> {
+    const formData = new FormData();
+    formData.append(
+      'company',
+      new Blob([JSON.stringify(data)], { type: 'application/json' })
+    );
+    if (imageFile) {
+      formData.append('image', imageFile, imageFile.name);
+    }
+    return this.http.post<CompanyRegistrationResponse>(
+      `${this.apiUrl}/register/company`,
       formData
     );
   }

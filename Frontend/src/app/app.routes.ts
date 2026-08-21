@@ -13,6 +13,13 @@ export const routes: Routes = [
         (m) => m.RegisterClientComponent
       )
   },
+  {
+    path: 'register/company',
+    loadComponent: () =>
+      import('./features/auth/register-company/register-company.component').then(
+        (m) => m.RegisterCompanyComponent
+      )
+  },
   // Redirection temporaire : la vraie page d'accueil publique (recherche
   // simple) sera livrée dans une US ultérieure (Sprint F3).
   { path: '', redirectTo: 'login', pathMatch: 'full' }
