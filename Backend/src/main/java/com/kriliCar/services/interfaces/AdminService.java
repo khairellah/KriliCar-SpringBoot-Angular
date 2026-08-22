@@ -20,4 +20,10 @@ public interface AdminService {
      * Vérifie l'ancien mot de passe avant remplacement.
      */
     UserDisplayDTO changePassword(String email, ChangePasswordRequest request);
+
+    /**
+     * US-1.6 (extension) : Récupère le profil de l'Admin connecté.
+     * Utilisé par le Front pour pré-remplir le formulaire de modification.
+     */
+    UserDisplayDTO getMyProfile(String email);
 }

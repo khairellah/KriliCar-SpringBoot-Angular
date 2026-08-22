@@ -32,6 +32,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-1.6 : Profil Admin — protégé authGuard + roleGuard(['ADMIN'])
+    path: 'admin/profile',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/profile/admin-profile.component').then(
+        (m) => m.AdminProfileComponent
+      )
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>

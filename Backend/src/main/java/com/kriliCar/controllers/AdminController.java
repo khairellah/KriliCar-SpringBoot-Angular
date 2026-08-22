@@ -27,6 +27,16 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @GetMapping(
+            value = "/profile",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserDisplayDTO> getMyProfile(Principal principal) {
+        UserDisplayDTO profile = adminService.getMyProfile(principal.getName());
+        return ResponseEntity.ok(profile);
+    }
+
     @PutMapping(
             value = "/profile",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,

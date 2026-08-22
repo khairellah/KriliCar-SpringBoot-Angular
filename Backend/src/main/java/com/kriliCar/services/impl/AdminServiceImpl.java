@@ -28,6 +28,16 @@ public class AdminServiceImpl implements AdminService {
     private final FileService fileService;
     private final PasswordEncoder passwordEncoder;
 
+    // ------------------------- US-1.6 (ext) : Récupération du profil -------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public UserDisplayDTO getMyProfile(String email) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin", "email", email));
+
+        return toDisplayDTO(admin);
+    }
+
     // ------------------------- US-1.6 : Mise à jour du profil -------------------------
     @Override
     @Transactional
