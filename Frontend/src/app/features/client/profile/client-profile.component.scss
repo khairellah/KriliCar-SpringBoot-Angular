@@ -1,0 +1,118 @@
+// Frontend/src/app/features/client/profile/client-profile.component.scss
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.page-title {
+  margin: 0;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 560px;
+}
+
+.readonly-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.readonly-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.readonly-label {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.readonly-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: 100%;
+  flex: 1;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  height: 44px;
+  width: 100%;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.success-banner {
+  background-color: #e6f4ea;
+  color: #1e4620;
+  border: 1px solid #b7dfb9;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.image-upload {
+  margin: 8px 0 16px;
+
+  &-label {
+    display: block;
+    font-size: 0.85rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 6px;
+  }
+}
+
+.image-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+
+  img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.initial-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+}
+
+.form-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

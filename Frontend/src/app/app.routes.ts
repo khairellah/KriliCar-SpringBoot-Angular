@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -18,6 +20,15 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/auth/register-company/register-company.component').then(
         (m) => m.RegisterCompanyComponent
+      )
+  },
+  {
+    // US-1.5 : Profil Client — protégé authGuard + roleGuard(['CLIENT'])
+    path: 'client/profile',
+    canActivate: [authGuard, roleGuard('CLIENT')],
+    loadComponent: () =>
+      import('./features/client/profile/client-profile.component').then(
+        (m) => m.ClientProfileComponent
       )
   },
   {
