@@ -41,6 +41,20 @@ public class ClientController {
     }
 
     /**
+     * US-1.5 (extension) : Récupérer le profil du client connecté.
+     * Permet au Front de pré-remplir le formulaire avant modification.
+     */
+    @GetMapping(
+            value = "/profile",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAuthority('CLIENT')")
+    public ResponseEntity<ClientDisplayDTO> getMyProfile(Principal principal) {
+        ClientDisplayDTO profile = clientService.getMyProfile(principal.getName());
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
      * US-1.5 (extension) : Changer le mot de passe.
      */
     @PutMapping(

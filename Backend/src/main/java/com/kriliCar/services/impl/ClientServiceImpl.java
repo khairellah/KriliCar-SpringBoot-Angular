@@ -50,6 +50,19 @@ public class ClientServiceImpl implements ClientService {
     private final CarMapper carMapper;
 
     /**
+     * US-1.5 (extension) : Récupérer le profil du client connecté.
+     * Utilisé par le Front pour pré-remplir le formulaire de modification.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public ClientDisplayDTO getMyProfile(String email) {
+        Client client = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", "email", email));
+
+        return clientMapper.toDisplayDTO(client);
+    }
+
+    /**
      * US-1.5 : Modifier le profil Client (infos perso + image).
      * ⚠️ Email et rôle non modifiables. Mot de passe non modifiable ici (cf. changePassword).
      */

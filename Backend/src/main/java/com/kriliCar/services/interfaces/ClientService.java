@@ -17,6 +17,9 @@ public interface ClientService {
     // US-1.5 (ext) : Changement sécurisé du mot de passe
     ClientDisplayDTO changePassword(String email, ChangePasswordRequest request);
 
+    // US-1.5 (ext) : Récupération du profil courant (pré-remplissage formulaire Front)
+    ClientDisplayDTO getMyProfile(String email);
+
     /**
      * US-7.3 : Liste des clients, filtrable par statut de compte.
      *
