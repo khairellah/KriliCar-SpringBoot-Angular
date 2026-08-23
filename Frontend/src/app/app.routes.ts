@@ -68,6 +68,27 @@ export const routes: Routes = [
       )
   },
   {
+    // US-3.1 : Liste des voitures de la Company connectée
+    path: 'company/cars',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/cars/car-list.component').then((m) => m.CarListComponent)
+  },
+  {
+    // US-3.1 : Création d'une voiture — DOIT être déclarée avant ':code/edit'
+    path: 'company/cars/new',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/cars/car-form.component').then((m) => m.CarFormComponent)
+  },
+  {
+    // US-3.1 : Modification d'une voiture
+    path: 'company/cars/:code/edit',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/cars/car-form.component').then((m) => m.CarFormComponent)
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>

@@ -1,0 +1,61 @@
+.car-form-page {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 720px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.half-width {
+  width: 100%;
+  flex: 1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.success-banner {
+  background-color: #e6f4ea;
+  color: #1e4620;
+  border: 1px solid #b7dfb9;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0 16px;
+  font-size: 0.9rem;
+}
+
+.initial-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+}
