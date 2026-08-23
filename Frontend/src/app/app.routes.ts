@@ -59,6 +59,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-2.2 : Gestion des modèles (Admin) — protégé authGuard + roleGuard(['ADMIN'])
+    path: 'admin/models',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/models/model-list.component').then(
+        (m) => m.ModelListComponent
+      )
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>
