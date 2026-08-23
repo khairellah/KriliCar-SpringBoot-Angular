@@ -50,6 +50,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-2.1 : Gestion des marques (Admin) — protégé authGuard + roleGuard(['ADMIN'])
+    path: 'admin/brands',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/brands/brand-list.component').then(
+        (m) => m.BrandListComponent
+      )
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>
