@@ -129,6 +129,19 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     /**
+     * US-1.4 (extension) : Récupérer le profil de la Company connectée.
+     * Permet au Front de pré-remplir le formulaire avant modification.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyProfileResponse getMyProfile(String email) {
+        Company company = companyRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Company", "email", email));
+
+        return companyMapper.toProfileResponse(company);
+    }
+
+    /**
      * US-1.4 (extension) : Changement sécurisé du mot de passe.
      *
      * ✅ Vérifie l'ancien mot de passe avant de le modifier

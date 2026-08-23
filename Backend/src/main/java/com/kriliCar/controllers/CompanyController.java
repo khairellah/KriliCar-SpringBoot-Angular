@@ -31,6 +31,23 @@ public class CompanyController {
     private final CompanyService companyService;
 
     /**
+     * US-1.4 (extension) : Récupérer le profil de la Company connectée.
+     * Permet au Front de pré-remplir le formulaire avant modification.
+     *
+     * @param principal Contexte de sécurité (email du token JWT)
+     * @return DTO de profil (sans password)
+     */
+    @GetMapping(
+            value = "/profile",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAuthority('COMPANY')")
+    public ResponseEntity<CompanyProfileResponse> getMyProfile(Principal principal) {
+        CompanyProfileResponse profile = companyService.getMyProfile(principal.getName());
+        return ResponseEntity.ok(profile);
+    }
+
+    /**
      * US-1.4 : Modifier le profil Company.
      *
      * ✅ Authentification requise (JWT) + rôle COMPANY

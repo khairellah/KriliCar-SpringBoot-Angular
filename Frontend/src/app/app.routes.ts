@@ -41,6 +41,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-1.7 : Profil Company — protégé authGuard + roleGuard(['COMPANY'])
+    path: 'company/profile',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/profile/company-profile.component').then(
+        (m) => m.CompanyProfileComponent
+      )
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>

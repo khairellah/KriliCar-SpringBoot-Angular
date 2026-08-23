@@ -40,6 +40,15 @@ public interface CompanyService {
             MultipartFile imageFile) throws IOException;
 
     /**
+     * US-1.4 (extension) : Récupère le profil de la Company connectée.
+     * Utilisé par le Front pour pré-remplir le formulaire de modification.
+     *
+     * @param email Email de la Company (du token JWT)
+     * @return DTO de réponse (sans password)
+     */
+    CompanyProfileResponse getMyProfile(String email);
+
+    /**
      * US-1.4 (extension) : Change le mot de passe d'une Company.
      *
      * ✅ Vérifie l'ancien mot de passe avant modification
