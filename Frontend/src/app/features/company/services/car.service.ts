@@ -8,25 +8,20 @@ import { CarCreateRequest, CarUpdateRequest } from '../../../core/models/car/car
 import { PageResponse } from '../../../core/models/page-response.model';
 
 /**
- * US-3.1 : Service Voitures (Company), aligné 1-pour-1 sur
+ * US-3.1 / US-3.2 : Service Voitures (Company), aligné 1-pour-1 sur
  * Backend/src/main/java/com/kriliCar/controllers/CarController.java
  *
- * ⚠️ Les endpoints POST/PUT exigent multipart/form-data côté backend
- * (part "car" en JSON + "images"/"newImages" optionnelles, "required = false").
- * Cette US ne gère pas les images (US-3.2) : les parts fichiers sont
- * simplement omises, ce que le backend autorise nativement.
+ * Les endpoints POST/PUT sont multipart/form-data côté backend :
+ * - "car" : JSON (part obligatoire)
+ * - "images" (création) / "newImages" (update) : fichiers optionnels
+ * - "imagesToDelete" (update uniquement) : liste de CODES métier d'images
+ *   à supprimer (JAMAIS d'ID), envoyée en parts de formulaire répétées.
  */
 @Injectable({ providedIn: 'root' })
 export class CarService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/cars`;
 
-  /**
-   * GET /api/v1/cars?companyCode=...&page=...&size=...
-   * Endpoint public côté backend ; utilisé ici pour lister le parc de la
-   * Company connectée. US-3.4 réutilisera /cars/my-fleet pour la recherche
-   * avancée scopée automatiquement au token — hors périmètre de cette US.
-   */
   getCompanyCars(companyCode: string, page: number, size: number): Observable<PageResponse<CarDTO>> {
     const params = new HttpParams()
       .set('companyCode', companyCode)
@@ -36,26 +31,55 @@ export class CarService {
     return this.http.get<PageResponse<CarDTO>>(this.apiUrl, { params });
   }
 
-  /** GET /api/v1/cars/{code} — pré-remplissage du formulaire d'édition */
+  /** GET /api/v1/cars/{code} — pré-remplissage du formulaire d'édition (scalaires + images) */
   getCarByCode(code: string): Observable<CarDTO> {
     return this.http.get<CarDTO>(`${this.apiUrl}/${code}`);
   }
 
-  /** POST /api/v1/cars (multipart) — part "car" uniquement, pas de part "images" */
-  createCar(data: CarCreateRequest): Observable<CarDTO> {
+  /**
+   * POST /api/v1/cars (multipart) — part "car" + part(s) "images" optionnelle(s) (US-3.2).
+   */
+  createCar(data: CarCreateRequest, images?: File[]): Observable<CarDTO> {
     const formData = new FormData();
     formData.append('car', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+
+    if (images?.length) {
+      for (const file of images) {
+        formData.append('images', file, file.name);
+      }
+    }
+
     return this.http.post<CarDTO>(this.apiUrl, formData);
   }
 
-  /** PUT /api/v1/cars/{code} (multipart) — part "car" uniquement */
-  updateCar(code: string, data: CarUpdateRequest): Observable<CarDTO> {
+  /**
+   * PUT /api/v1/cars/{code} (multipart) — part "car" + part(s) "newImages" optionnelle(s)
+   * + parts "imagesToDelete" répétées (codes métier des images existantes à supprimer). US-3.2.
+   */
+  updateCar(
+    code: string,
+    data: CarUpdateRequest,
+    newImages?: File[],
+    imagesToDelete?: string[]
+  ): Observable<CarDTO> {
     const formData = new FormData();
     formData.append('car', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+
+    if (newImages?.length) {
+      for (const file of newImages) {
+        formData.append('newImages', file, file.name);
+      }
+    }
+
+    if (imagesToDelete?.length) {
+      for (const imageCode of imagesToDelete) {
+        formData.append('imagesToDelete', imageCode);
+      }
+    }
+
     return this.http.put<CarDTO>(`${this.apiUrl}/${code}`, formData);
   }
 
-  /** DELETE /api/v1/cars/{code} */
   deleteCar(code: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${code}`);
   }

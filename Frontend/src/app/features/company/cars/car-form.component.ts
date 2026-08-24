@@ -9,17 +9,21 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { environment } from '../../../../environments/environment';
 import { CarService } from '../services/car.service';
 import { BrandService } from '../../admin/services/brand.service';
 import { ModelService } from '../../admin/services/model.service';
 import { Brand } from '../../../core/models/brand.model';
 import { Model } from '../../../core/models/model.model';
 import { CarDTO } from '../../../core/models/car/car.model';
+import { CarImageDTO } from '../../../core/models/car/car-image.model';
 import { CarCreateRequest, CarUpdateRequest } from '../../../core/models/car/car-request.model';
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { CarAvailability, CarColor, FuelType, Gearbox } from '../../../core/models/enums';
+import { isValidCarImageFile } from '../../../core/utils/car-image-validation.util';
 
 interface CarForm {
   vin: FormControl<string>;
@@ -36,6 +40,12 @@ interface CarForm {
   modelCode: FormControl<string>;
 }
 
+/** US-3.2 : couple fichier sélectionné / URL de prévisualisation (data URL). */
+interface NewImageEntry {
+  file: File;
+  previewUrl: string;
+}
+
 @Component({
   selector: 'app-car-form',
   standalone: true,
@@ -48,6 +58,7 @@ interface CarForm {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule
   ],
   templateUrl: './car-form.component.html',
@@ -61,10 +72,6 @@ export class CarFormComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  // US-3.1 : le paramètre :code de l'URL (/company/cars/:code/edit) détermine
-  // le mode. Absent sur /company/cars/new -> mode création. Deux routes
-  // distinctes -> nouvelle instance de composant à chaque navigation entre
-  // les deux, donc lecture au snapshot suffit (pas besoin de paramMap$).
   readonly editingCode = signal<string | null>(this.route.snapshot.paramMap.get('code'));
   readonly isEditMode = computed(() => this.editingCode() !== null);
 
@@ -81,6 +88,15 @@ export class CarFormComponent {
   readonly isSubmitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
+
+  // ============================ US-3.2 : Gestion des images ============================
+  /** Images déjà présentes sur la voiture (édition uniquement), triées par sortOrder. */
+  readonly existingImages = signal<CarImageDTO[]>([]);
+  /** Codes métier des images existantes marquées pour suppression (imagesToDelete). */
+  readonly imagesToDeleteCodes = signal<Set<string>>(new Set());
+  /** Nouvelles images sélectionnées (création ou ajout en édition), avec preview. */
+  readonly newImages = signal<NewImageEntry[]>([]);
+  readonly imagesErrorMessage = signal<string | null>(null);
 
   readonly gearboxOptions: ReadonlyArray<{ value: Gearbox; label: string }> = [
     { value: 'MANUAL', label: 'Manuelle' },
@@ -105,9 +121,6 @@ export class CarFormComponent {
     { value: 'YELLOW', label: 'Jaune' }
   ];
 
-  // RESERVED volontairement exclu : jamais sélectionnable manuellement,
-  // piloté automatiquement par le cycle de réservation (§5.2 spec globale) —
-  // et rejeté par le backend en update (CarServiceImpl.updateCar -> 400).
   readonly availabilityOptions: ReadonlyArray<{ value: CarAvailability; label: string }> = [
     { value: 'AVAILABLE', label: 'Disponible' },
     { value: 'MAINTENANCE', label: 'En maintenance' }
@@ -144,9 +157,6 @@ export class CarFormComponent {
       this.loadCarForEdit(code);
     }
 
-    // Select dépendant Marque -> Modèles. Uniquement actif en création :
-    // en édition, brandCode/modelCode sont désactivés (cf. loadCarForEdit),
-    // donc aucune sélection utilisateur ne peut déclencher ce flux.
     this.form.controls.brandCode.valueChanges.subscribe((brandCode) => {
       if (this.isEditMode()) {
         return;
@@ -186,7 +196,7 @@ export class CarFormComponent {
     });
   }
 
-    private loadCarForEdit(code: string): void {
+  private loadCarForEdit(code: string): void {
     this.isInitialLoading.set(true);
     this.initialLoadError.set(null);
 
@@ -212,12 +222,15 @@ export class CarFormComponent {
         this.form.controls.brandCode.disable({ emitEvent: false });
         this.form.controls.modelCode.disable({ emitEvent: false });
 
-        // 🔧 CORRECTIF : en édition, le subscriber brandCode.valueChanges est
-        // court-circuité (isEditMode() === true), donc `models` reste vide et
-        // le <mat-select modelCode> n'a aucune option à afficher, même si la
-        // valeur du FormControl est correcte. On charge donc explicitement
-        // les modèles de la marque de la voiture pour que le select affiche
-        // la bonne option sélectionnée.
+        // US-3.2 : initialisation des images existantes (triées par sortOrder),
+        // et remise à zéro de l'état de sélection (nouvelles images / suppressions).
+        this.existingImages.set(
+          [...(car.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        );
+        this.imagesToDeleteCodes.set(new Set());
+        this.newImages.set([]);
+        this.imagesErrorMessage.set(null);
+
         this.isModelsLoading.set(true);
         this.modelService.getModelsByBrand(car.brandCode).subscribe({
           next: (models) => {
@@ -239,6 +252,65 @@ export class CarFormComponent {
     });
   }
 
+  // ============================ US-3.2 : Actions images ============================
+
+  /** URL de prévisualisation d'une image déjà stockée côté serveur (cf. environment.filesBaseUrl). */
+  resolveImageUrl(path: string): string {
+    return `${environment.filesBaseUrl}${path}`;
+  }
+
+  onNewImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+    this.imagesErrorMessage.set(null);
+
+    for (const file of files) {
+      if (!isValidCarImageFile(file)) {
+        this.imagesErrorMessage.set(
+          `Fichier '${file.name}' invalide : seules les images JPG, JPEG, PNG, WEBP ou GIF sont autorisées.`
+        );
+        continue;
+      }
+
+      const entry: NewImageEntry = { file, previewUrl: '' };
+      this.newImages.update((list) => [...list, entry]);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        entry.previewUrl = reader.result as string;
+        // Mutation de l'objet interne : on force la mise à jour du signal
+        // (nouvelle référence de tableau) pour déclencher le re-rendu.
+        this.newImages.update((list) => [...list]);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Permet de resélectionner le(s) même(s) fichier(s) après suppression.
+    input.value = '';
+  }
+
+  removeNewImage(index: number): void {
+    this.newImages.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  toggleDeleteExisting(code: string): void {
+    this.imagesToDeleteCodes.update((set) => {
+      const next = new Set(set);
+      if (next.has(code)) {
+        next.delete(code);
+      } else {
+        next.add(code);
+      }
+      return next;
+    });
+  }
+
+  isMarkedForDeletion(code: string): boolean {
+    return this.imagesToDeleteCodes().has(code);
+  }
+
+  // ============================ Soumission ============================
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -247,9 +319,11 @@ export class CarFormComponent {
 
     this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.imagesErrorMessage.set(null);
     this.isSubmitting.set(true);
 
     const raw = this.form.getRawValue();
+    const newImageFiles = this.newImages().map((entry) => entry.file);
 
     if (this.isEditMode()) {
       const payload: CarUpdateRequest = {
@@ -265,16 +339,23 @@ export class CarFormComponent {
         availability: raw.availability
       };
 
-      this.carService.updateCar(this.editingCode()!, payload).subscribe({
-        next: () => {
-          this.isSubmitting.set(false);
-          this.router.navigateByUrl('/company/cars');
-        },
-        error: (err: HttpErrorResponse) => {
-          this.isSubmitting.set(false);
-          this.applyServerErrors(err);
-        }
-      });
+      this.carService
+        .updateCar(
+          this.editingCode()!,
+          payload,
+          newImageFiles,
+          Array.from(this.imagesToDeleteCodes())
+        )
+        .subscribe({
+          next: () => {
+            this.isSubmitting.set(false);
+            this.router.navigateByUrl('/company/cars');
+          },
+          error: (err: HttpErrorResponse) => {
+            this.isSubmitting.set(false);
+            this.applyServerErrors(err);
+          }
+        });
     } else {
       const payload: CarCreateRequest = {
         vin: raw.vin,
@@ -291,7 +372,7 @@ export class CarFormComponent {
         modelCode: raw.modelCode
       };
 
-      this.carService.createCar(payload).subscribe({
+      this.carService.createCar(payload, newImageFiles).subscribe({
         next: () => {
           this.isSubmitting.set(false);
           this.router.navigateByUrl('/company/cars');
@@ -320,7 +401,6 @@ export class CarFormComponent {
     }
 
     if (err.status === 409) {
-      // DuplicateResourceException : VIN déjà utilisé
       const message = body?.message ?? 'Ce VIN est déjà utilisé par une autre voiture.';
       this.form.controls.vin.setErrors({ backend: message });
       this.form.controls.vin.markAsTouched();
@@ -329,14 +409,14 @@ export class CarFormComponent {
     }
 
     if (err.status === 400) {
-      // IllegalArgumentException : ex. "Le modèle spécifié n'appartient pas à la marque fournie."
+      // Couvre notamment le rejet KC-20 d'un fichier image invalide côté serveur.
       this.errorMessage.set(body?.message ?? 'Requête invalide.');
       return;
     }
 
     if (err.status === 404) {
       this.errorMessage.set(
-        body?.message ?? 'Marque, modèle ou voiture introuvable. Veuillez rafraîchir la page.'
+        body?.message ?? 'Marque, modèle, voiture ou image introuvable. Veuillez rafraîchir la page.'
       );
       return;
     }

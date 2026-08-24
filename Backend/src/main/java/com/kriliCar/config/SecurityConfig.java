@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll() // <-- ajouté (US-2.1)
                         .requestMatchers(HttpMethod.GET, "/api/v1/models/**").permitAll()  // Correction régression : lecture publique des modèles (US-2.2)
                         .requestMatchers(HttpMethod.GET, "/api/v1/cars/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

@@ -165,6 +165,78 @@
             }
           </mat-form-field>
 
+                    <!-- ============================ US-3.2 : Gestion des images ============================ -->
+          <div class="images-section">
+            <h3 class="section-subtitle">Images du véhicule</h3>
+
+            @if (isEditMode() && existingImages().length > 0) {
+              <div class="images-group">
+                <span class="images-group-label">Images actuelles</span>
+                <div class="image-grid">
+                  @for (image of existingImages(); track image.code) {
+                    <div class="image-tile" [class.marked-for-deletion]="isMarkedForDeletion(image.code)">
+                      <img [src]="resolveImageUrl(image.path)" alt="Image de la voiture" />
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="image-tile-action"
+                        (click)="toggleDeleteExisting(image.code)"
+                        [attr.aria-label]="
+                          isMarkedForDeletion(image.code)
+                            ? 'Annuler la suppression de cette image'
+                            : 'Marquer cette image pour suppression'
+                        "
+                      >
+                        <mat-icon>{{ isMarkedForDeletion(image.code) ? 'restore_from_trash' : 'delete' }}</mat-icon>
+                      </button>
+                      @if (isMarkedForDeletion(image.code)) {
+                        <span class="image-tile-badge">À supprimer</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="images-group">
+              <label for="newImages" class="images-group-label">
+                {{ isEditMode() ? 'Ajouter de nouvelles images' : 'Images (optionnelles)' }}
+              </label>
+              <input
+                type="file"
+                id="newImages"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                (change)="onNewImagesSelected($event)"
+              />
+
+              @if (newImages().length > 0) {
+                <div class="image-grid">
+                  @for (entry of newImages(); track entry.file; let i = $index) {
+                    <div class="image-tile">
+                      @if (entry.previewUrl) {
+                        <img [src]="entry.previewUrl" alt="Aperçu de la nouvelle image" />
+                      }
+                      <button
+                        mat-icon-button
+                        type="button"
+                        class="image-tile-action"
+                        (click)="removeNewImage(i)"
+                        aria-label="Retirer cette image"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (imagesErrorMessage()) {
+              <div class="error-banner" role="alert">{{ imagesErrorMessage() }}</div>
+            }
+          </div>
+
           @if (successMessage()) {
             <div class="success-banner" role="status">{{ successMessage() }}</div>
           }
