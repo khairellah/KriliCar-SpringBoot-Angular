@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { CarDTO } from '../../../core/models/car/car.model';
 import { CarCreateRequest, CarUpdateRequest } from '../../../core/models/car/car-request.model';
 import { PageResponse } from '../../../core/models/page-response.model';
+import { CompanyFleetSearchParams } from '../../../core/models/car/company-fleet-search-params.model';
 
 /**
  * US-3.1 / US-3.2 : Service Voitures (Company), aligné 1-pour-1 sur
@@ -29,6 +30,49 @@ export class CarService {
       .set('size', size)
       .set('sort', 'createdAt,desc');
     return this.http.get<PageResponse<CarDTO>>(this.apiUrl, { params });
+  }
+
+  /**
+   * US-3.4 : GET /api/v1/cars/my-fleet — recherche/filtrage scopé à la
+   * Company authentifiée (aucun companyCode transmis, résolu via le token
+   * côté backend, cf. CarController.searchMyFleet).
+   */
+  searchMyFleet(
+    filters: CompanyFleetSearchParams,
+    page: number,
+    size: number
+  ): Observable<PageResponse<CarDTO>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('sort', 'createdAt,desc');
+
+    if (filters.brand) {
+      params = params.set('brand', filters.brand);
+    }
+    if (filters.model) {
+      params = params.set('model', filters.model);
+    }
+    if (filters.minPrice != null) {
+      params = params.set('minPrice', filters.minPrice);
+    }
+    if (filters.maxPrice != null) {
+      params = params.set('maxPrice', filters.maxPrice);
+    }
+    if (filters.minMileage != null) {
+      params = params.set('minMileage', filters.minMileage);
+    }
+    if (filters.maxMileage != null) {
+      params = params.set('maxMileage', filters.maxMileage);
+    }
+    if (filters.nbrSeats != null) {
+      params = params.set('nbrSeats', filters.nbrSeats);
+    }
+    if (filters.availability) {
+      params = params.set('availability', filters.availability);
+    }
+
+    return this.http.get<PageResponse<CarDTO>>(`${this.apiUrl}/my-fleet`, { params });
   }
 
   /** GET /api/v1/cars/{code} — pré-remplissage du formulaire d'édition (scalaires + images) */

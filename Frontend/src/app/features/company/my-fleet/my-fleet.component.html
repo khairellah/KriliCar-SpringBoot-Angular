@@ -1,0 +1,168 @@
+<div class="my-fleet-page">
+  <h1 class="page-title">Mon parc</h1>
+
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <!-- ============================ FILTRES DE BASE ============================ -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Marque</mat-label>
+            <mat-select formControlName="brandCode" id="brandCode" [disabled]="isBrandsLoading()">
+              <mat-option value="">Toutes les marques</mat-option>
+              @for (brand of brands(); track brand.code) {
+                <mat-option [value]="brand.code">{{ brand.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Modèle</mat-label>
+            <mat-select
+              formControlName="modelCode"
+              id="modelCode"
+              [disabled]="!form.controls.brandCode.value || isModelsLoading()"
+            >
+              <mat-option value="">Tous les modèles</mat-option>
+              @for (model of models(); track model.code) {
+                <mat-option [value]="model.code">{{ model.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Statut</mat-label>
+            <mat-select formControlName="availability" id="availability">
+              @for (option of availabilityOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (brandsErrorMessage()) {
+          <div class="error-banner" role="alert">{{ brandsErrorMessage() }}</div>
+        }
+
+        <button mat-button type="button" class="toggle-advanced-btn" (click)="toggleAdvanced()">
+          <mat-icon>{{ showAdvanced() ? 'expand_less' : 'tune' }}</mat-icon>
+          {{ showAdvanced() ? 'Masquer les filtres avancés' : 'Filtres avancés' }}
+        </button>
+
+        <!-- ============================ FILTRES AVANCÉS ============================ -->
+        @if (showAdvanced()) {
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Prix min (MAD)</mat-label>
+              <input matInput type="number" formControlName="minPrice" id="minPrice" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Prix max (MAD)</mat-label>
+              <input matInput type="number" formControlName="maxPrice" id="maxPrice" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Kilométrage min</mat-label>
+              <input matInput type="number" formControlName="minMileage" id="minMileage" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Kilométrage max</mat-label>
+              <input matInput type="number" formControlName="maxMileage" id="maxMileage" min="0" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Nombre de places</mat-label>
+              <input matInput type="number" formControlName="nbrSeats" id="nbrSeats" min="1" max="9" />
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="onReset()" [disabled]="isSearching()">
+            Réinitialiser
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSearching()">
+            <mat-icon>search</mat-icon>
+            Rechercher
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ============================ RÉSULTATS ============================ -->
+  <mat-card class="list-card">
+    @if (isSearching()) {
+      <div class="initial-loading" role="status">
+        <mat-spinner diameter="24" />
+        <span>Recherche en cours...</span>
+      </div>
+    } @else if (searchErrorMessage()) {
+      <div class="error-banner" role="alert">{{ searchErrorMessage() }}</div>
+    } @else if (hasSearched() && results().length === 0) {
+      <p class="empty-state">Aucune voiture de votre parc ne correspond à ces critères.</p>
+    } @else {
+      <p class="results-count">{{ totalElements() }} voiture(s) dans votre parc</p>
+
+      <table mat-table [dataSource]="results()" class="fleet-table">
+        <ng-container matColumnDef="brandModel">
+          <th mat-header-cell *matHeaderCellDef scope="col">Marque / Modèle</th>
+          <td mat-cell *matCellDef="let car">{{ car.brandName }} {{ car.modelName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="vin">
+          <th mat-header-cell *matHeaderCellDef scope="col">VIN</th>
+          <td mat-cell *matCellDef="let car">{{ car.vin }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="year">
+          <th mat-header-cell *matHeaderCellDef scope="col">Année</th>
+          <td mat-cell *matCellDef="let car">{{ car.year }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef scope="col">Prix / jour</th>
+          <td mat-cell *matCellDef="let car">{{ car.price != null ? (car.price + ' MAD') : '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="availability">
+          <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
+          <td mat-cell *matCellDef="let car">
+            <mat-chip [class]="'status-' + car.availability.toLowerCase()">
+              {{ getAvailabilityLabel(car.availability) }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef scope="col">Actions</th>
+          <td mat-cell *matCellDef="let car">
+            <button
+              mat-icon-button
+              type="button"
+              (click)="goToEdit(car.code)"
+              [attr.aria-label]="'Modifier la voiture ' + car.vin"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+      />
+    }
+  </mat-card>
+</div>

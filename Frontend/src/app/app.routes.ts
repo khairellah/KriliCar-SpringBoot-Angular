@@ -81,6 +81,13 @@ export const routes: Routes = [
       import('./features/company/cars/car-list.component').then((m) => m.CarListComponent)
   },
   {
+    // US-3.4 : Mon parc (recherche interne Company, scope auto) — GET /api/v1/cars/my-fleet
+    path: 'company/my-fleet',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/my-fleet/my-fleet.component').then((m) => m.MyFleetComponent)
+  },
+  {
     // US-3.1 : Création d'une voiture — DOIT être déclarée avant ':code/edit'
     path: 'company/cars/new',
     canActivate: [authGuard, roleGuard('COMPANY')],
