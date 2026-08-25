@@ -1,0 +1,154 @@
+<div class="search-page">
+  <h1 class="page-title">Rechercher une voiture</h1>
+
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <!-- ============================ RECHERCHE SIMPLE ============================ -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Marque</mat-label>
+            <mat-select formControlName="brandCode" id="brandCode" [disabled]="isBrandsLoading()">
+              <mat-option value="">Toutes les marques</mat-option>
+              @for (brand of brands(); track brand.code) {
+                <mat-option [value]="brand.code">{{ brand.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Modèle</mat-label>
+            <mat-select
+              formControlName="modelCode"
+              id="modelCode"
+              [disabled]="!form.controls.brandCode.value || isModelsLoading()"
+            >
+              <mat-option value="">Tous les modèles</mat-option>
+              @for (model of models(); track model.code) {
+                <mat-option [value]="model.code">{{ model.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="third-width">
+            <mat-label>Ville</mat-label>
+            <mat-select formControlName="city" id="city">
+              <mat-option [value]="null">Toutes les villes</mat-option>
+              @for (option of cityOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        @if (brandsErrorMessage()) {
+          <div class="error-banner" role="alert">{{ brandsErrorMessage() }}</div>
+        }
+
+        <button mat-button type="button" class="toggle-advanced-btn" (click)="toggleAdvanced()">
+          <mat-icon>{{ showAdvanced() ? 'expand_less' : 'tune' }}</mat-icon>
+          {{ showAdvanced() ? 'Masquer la recherche avancée' : 'Recherche avancée' }}
+        </button>
+
+        <!-- ============================ RECHERCHE AVANCÉE ============================ -->
+        @if (showAdvanced()) {
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Prix min (MAD)</mat-label>
+              <input matInput type="number" formControlName="minPrice" id="minPrice" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Prix max (MAD)</mat-label>
+              <input matInput type="number" formControlName="maxPrice" id="maxPrice" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Kilométrage min</mat-label>
+              <input matInput type="number" formControlName="minMileage" id="minMileage" min="0" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Kilométrage max</mat-label>
+              <input matInput type="number" formControlName="maxMileage" id="maxMileage" min="0" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="quarter-width">
+              <mat-label>Nombre de places</mat-label>
+              <input matInput type="number" formControlName="nbrSeats" id="nbrSeats" min="1" max="9" />
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="onReset()" [disabled]="isSearching()">
+            Réinitialiser
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSearching()">
+            <mat-icon>search</mat-icon>
+            Rechercher
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ============================ RÉSULTATS ============================ -->
+  <div class="results-section">
+    @if (isSearching()) {
+      <div class="initial-loading" role="status">
+        <mat-spinner diameter="24" />
+        <span>Recherche en cours...</span>
+      </div>
+    } @else if (searchErrorMessage()) {
+      <div class="error-banner" role="alert">{{ searchErrorMessage() }}</div>
+    } @else if (hasSearched() && results().length === 0) {
+      <p class="empty-state">Aucune voiture disponible ne correspond à votre recherche.</p>
+    } @else {
+      <p class="results-count">{{ totalElements() }} voiture(s) disponible(s)</p>
+
+      <div class="results-grid">
+        @for (car of results(); track car.code) {
+          <mat-card class="result-card">
+            <mat-card-header>
+              <mat-card-title>{{ car.brandName }} {{ car.modelName }}</mat-card-title>
+              <mat-card-subtitle>{{ car.year }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p class="result-price">
+                {{ car.price != null ? (car.price + ' MAD / jour') : 'Prix non renseigné' }}
+              </p>
+              <ul class="result-specs">
+                @if (car.gearbox) {
+                  <li>{{ gearboxLabels[car.gearbox] }}</li>
+                }
+                @if (car.fuelType) {
+                  <li>{{ fuelTypeLabels[car.fuelType] }}</li>
+                }
+                @if (car.color) {
+                  <li>{{ colorLabels[car.color] }}</li>
+                }
+                @if (car.nbrSeats) {
+                  <li>{{ car.nbrSeats }} places</li>
+                }
+                @if (car.mileage != null) {
+                  <li>{{ car.mileage }} km</li>
+                }
+              </ul>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[6, 12, 24, 48]"
+        (page)="onPageChange($event)"
+      />
+    }
+  </div>
+</div>

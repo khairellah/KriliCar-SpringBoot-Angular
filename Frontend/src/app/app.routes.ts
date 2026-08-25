@@ -4,6 +4,12 @@ import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
+    // US-3.3 : Recherche publique simple/avancée (Espace Public, non authentifié)
+    path: 'search',
+    loadComponent: () =>
+      import('./features/search/car-search.component').then((m) => m.CarSearchComponent)
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./features/auth/login/login.component').then((m) => m.LoginComponent)
@@ -94,7 +100,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./shared/pages/forbidden/forbidden.component').then((m) => m.ForbiddenComponent)
   },
-  // Redirection temporaire : la vraie page d'accueil publique (recherche
-  // simple) sera livrée dans une US ultérieure (Sprint F3).
-  { path: '', redirectTo: 'login', pathMatch: 'full' }
+  // US-3.3 : la page d'accueil publique pointe désormais vers la recherche
+  // (recherche simple visible par défaut, avancée dépliable via toggle).
+  { path: '', redirectTo: 'search', pathMatch: 'full' }
 ];
