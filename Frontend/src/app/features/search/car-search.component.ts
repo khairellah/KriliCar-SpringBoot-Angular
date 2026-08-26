@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -15,12 +15,15 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { CarSearchService } from './services/car-search.service';
 import { BrandService } from '../admin/services/brand.service';
 import { ModelService } from '../admin/services/model.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { WishlistService } from '../client/services/wishlist.service';
 import { Brand } from '../../core/models/brand.model';
 import { Model } from '../../core/models/model.model';
 import { CarDTO } from '../../core/models/car/car.model';
 import { CarSearchParams } from '../../core/models/car/car-search-params.model';
 import { ErrorResponse } from '../../core/models/errors/error-response.model';
 import { CarColor, City, FuelType, Gearbox } from '../../core/models/enums';
+import { Observable, map } from 'rxjs';
 
 interface SearchForm {
   brandCode: FormControl<string>;
@@ -35,10 +38,8 @@ interface SearchForm {
 
 /**
  * US-3.3 : Recherche publique simple/avancée de voitures.
- * Aucune authentification requise (GET /api/v1/cars/search est permitAll).
- * Un seul formulaire : les champs "avancés" (prix, kilométrage, places)
- * sont révélés via un toggle, la recherche simple (marque/modèle/ville)
- * étant toujours visible.
+ * US-4.1 (ajout) : toggle cœur sur les cartes résultat, visible uniquement
+ * pour un Client connecté, synchronisé avec sa wishlist (WishlistService).
  */
 @Component({
   selector: 'app-car-search',
@@ -63,9 +64,9 @@ export class CarSearchComponent {
   private readonly carSearchService = inject(CarSearchService);
   private readonly brandService = inject(BrandService);
   private readonly modelService = inject(ModelService);
+  private readonly authService = inject(AuthService);
+  private readonly wishlistService = inject(WishlistService);
 
-  // Même liste que register-company/company-profile — à garder synchronisée
-  // avec Backend/src/main/java/com/kriliCar/enums/City.java.
   readonly cityOptions: ReadonlyArray<{ value: City; label: string }> = [
     { value: 'RABAT', label: 'Rabat' },
     { value: 'CASABLANCA', label: 'Casablanca' },
@@ -111,6 +112,11 @@ export class CarSearchComponent {
     this.showAdvanced.update((v) => !v);
   }
 
+  // ============================ US-4.1 : WishList (toggle cœur) ============================
+  readonly isClient = computed(() => this.authService.role() === 'CLIENT');
+  readonly togglingWishlistCode = signal<string | null>(null);
+  readonly wishlistErrorMessage = signal<string | null>(null);
+
   // ============================ Résultats ============================
   readonly results = signal<CarDTO[]>([]);
   readonly totalElements = signal(0);
@@ -120,8 +126,6 @@ export class CarSearchComponent {
   readonly searchErrorMessage = signal<string | null>(null);
   readonly hasSearched = signal(false);
 
-  // Filtres réellement soumis (utilisés lors du changement de page — distincts
-  // des valeurs courantes du formulaire tant que "Rechercher" n'a pas été cliqué).
   private activeFilters: CarSearchParams = {};
 
   readonly form: FormGroup<SearchForm> = this.fb.nonNullable.group({
@@ -138,7 +142,12 @@ export class CarSearchComponent {
   constructor() {
     this.loadBrands();
 
-    // Select dépendant Marque -> Modèles (même pattern que CarFormComponent, Company).
+    // US-4.1 : si un Client est connecté, on précharge sa wishlist pour
+    // synchroniser l'état des cœurs dès le premier rendu des résultats.
+    if (this.isClient()) {
+      this.wishlistService.getWishlist().subscribe({ error: () => {} });
+    }
+
     this.form.controls.brandCode.valueChanges.subscribe((brandCode) => {
       this.form.controls.modelCode.setValue('');
       this.models.set([]);
@@ -155,8 +164,6 @@ export class CarSearchComponent {
       });
     });
 
-    // Recherche initiale sans filtre : la page affiche immédiatement le
-    // catalogue des voitures disponibles (§4.2 Spec Frontend, écran "Accueil public").
     this.performSearch();
   }
 
@@ -182,9 +189,6 @@ export class CarSearchComponent {
   onSubmit(): void {
     const raw = this.form.getRawValue();
 
-    // ⚠️ Le backend filtre "brand"/"model" par NOM (LIKE), pas par code
-    // (cf. CarRepository.searchCars) : on résout donc le nom correspondant
-    // au code sélectionné dans les selects.
     const selectedBrand = this.brands().find((b) => b.code === raw.brandCode);
     const selectedModel = this.models().find((m) => m.code === raw.modelCode);
 
@@ -249,5 +253,31 @@ export class CarSearchComponent {
           );
         }
       });
+  }
+
+  // ============================ US-4.1 : Actions WishList ============================
+
+  isInWishlist(carCode: string): boolean {
+    return this.wishlistService.isInWishlist(carCode);
+  }
+
+    toggleWishlist(carCode: string): void {
+    this.wishlistErrorMessage.set(null);
+    this.togglingWishlistCode.set(carCode);
+
+    const request$: Observable<unknown> = this.wishlistService.isInWishlist(carCode)
+      ? this.wishlistService.removeFromWishlist(carCode)
+      : this.wishlistService.addToWishlist(carCode).pipe(map(() => undefined));
+
+    request$.subscribe({
+      next: () => this.togglingWishlistCode.set(null),
+      error: (err: HttpErrorResponse) => {
+        this.togglingWishlistCode.set(null);
+        const body = err.error as ErrorResponse | undefined;
+        this.wishlistErrorMessage.set(
+          body?.message ?? 'Une erreur est survenue lors de la mise à jour de votre wishlist.'
+        );
+      }
+    });
   }
 }

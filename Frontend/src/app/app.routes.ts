@@ -38,6 +38,13 @@ export const routes: Routes = [
       )
   },
   {
+    // US-4.1 : WishList Client — protégé authGuard + roleGuard(['CLIENT'])
+    path: 'client/wishlist',
+    canActivate: [authGuard, roleGuard('CLIENT')],
+    loadComponent: () =>
+      import('./features/client/wishlist/wishlist.component').then((m) => m.WishlistComponent)
+  },
+  {
     // US-1.6 : Profil Admin — protégé authGuard + roleGuard(['ADMIN'])
     path: 'admin/profile',
     canActivate: [authGuard, roleGuard('ADMIN')],

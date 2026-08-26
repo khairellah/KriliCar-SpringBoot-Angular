@@ -1,0 +1,67 @@
+<div class="wishlist-page">
+  <h1 class="page-title">Ma wishlist</h1>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement de votre wishlist...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (cars().length === 0) {
+    <div class="empty-state">
+      <p>Votre wishlist est vide pour le moment.</p>
+      <a mat-flat-button color="primary" routerLink="/search">Rechercher des voitures</a>
+    </div>
+  } @else {
+    @if (removeErrorMessage()) {
+      <div class="error-banner" role="alert">{{ removeErrorMessage() }}</div>
+    }
+
+    <div class="results-grid">
+      @for (car of cars(); track car.code) {
+        <mat-card class="result-card">
+          <mat-card-header>
+            <mat-card-title>{{ car.brandName }} {{ car.modelName }}</mat-card-title>
+            <mat-card-subtitle>{{ car.year }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="result-price">
+              {{ car.price != null ? (car.price + ' MAD / jour') : 'Prix non renseigné' }}
+            </p>
+            <ul class="result-specs">
+              @if (car.gearbox) {
+                <li>{{ gearboxLabels[car.gearbox] }}</li>
+              }
+              @if (car.fuelType) {
+                <li>{{ fuelTypeLabels[car.fuelType] }}</li>
+              }
+              @if (car.color) {
+                <li>{{ colorLabels[car.color] }}</li>
+              }
+              @if (car.nbrSeats) {
+                <li>{{ car.nbrSeats }} places</li>
+              }
+              @if (car.mileage != null) {
+                <li>{{ car.mileage }} km</li>
+              }
+            </ul>
+          </mat-card-content>
+          <mat-card-actions>
+            <button
+              mat-button
+              color="warn"
+              type="button"
+              (click)="removeFromWishlist(car.code)"
+              [disabled]="removingCode() === car.code"
+              [attr.aria-label]="'Retirer ' + car.brandName + ' ' + car.modelName + ' de la wishlist'"
+            >
+              <mat-icon>favorite</mat-icon>
+              Retirer de la wishlist
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

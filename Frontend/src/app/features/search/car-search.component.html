@@ -109,9 +109,28 @@
     } @else {
       <p class="results-count">{{ totalElements() }} voiture(s) disponible(s)</p>
 
+      @if (wishlistErrorMessage()) {
+        <div class="error-banner" role="alert">{{ wishlistErrorMessage() }}</div>
+      }
+
       <div class="results-grid">
         @for (car of results(); track car.code) {
           <mat-card class="result-card">
+            @if (isClient()) {
+              <button
+                mat-icon-button
+                type="button"
+                class="wishlist-toggle"
+                (click)="toggleWishlist(car.code)"
+                [disabled]="togglingWishlistCode() === car.code"
+                [attr.aria-label]="
+                  isInWishlist(car.code) ? 'Retirer des favoris' : 'Ajouter aux favoris'
+                "
+                [attr.aria-pressed]="isInWishlist(car.code)"
+              >
+                <mat-icon>{{ isInWishlist(car.code) ? 'favorite' : 'favorite_border' }}</mat-icon>
+              </button>
+            }
             <mat-card-header>
               <mat-card-title>{{ car.brandName }} {{ car.modelName }}</mat-card-title>
               <mat-card-subtitle>{{ car.year }}</mat-card-subtitle>
