@@ -109,6 +109,15 @@ export const routes: Routes = [
       import('./features/company/cars/car-form.component').then((m) => m.CarFormComponent)
   },
   {
+  // US-5.1 : Création réservation (Client) — protégé authGuard + roleGuard(['CLIENT'])
+  path: 'client/reservations/new/:carCode',
+  canActivate: [authGuard, roleGuard('CLIENT')],
+  loadComponent: () =>
+    import('./features/client/reservations/reservation-form.component').then(
+      (m) => m.ReservationFormComponent
+    )
+},
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>

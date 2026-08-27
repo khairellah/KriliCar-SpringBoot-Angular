@@ -24,6 +24,7 @@ import { CarSearchParams } from '../../core/models/car/car-search-params.model';
 import { ErrorResponse } from '../../core/models/errors/error-response.model';
 import { CarColor, City, FuelType, Gearbox } from '../../core/models/enums';
 import { Observable, map } from 'rxjs';
+import { RouterLink } from '@angular/router';
 
 interface SearchForm {
   brandCode: FormControl<string>;
@@ -47,6 +48,7 @@ interface SearchForm {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink, // <-- ajouté (US-5.1)
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,

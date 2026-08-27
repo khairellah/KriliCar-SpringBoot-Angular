@@ -157,6 +157,16 @@
                 }
               </ul>
             </mat-card-content>
+
+            @if (isClient() && car.availability === 'AVAILABLE') {
+            <mat-card-actions>
+              <a mat-flat-button color="primary" [routerLink]="['/client/reservations/new', car.code]">
+                <mat-icon>event_available</mat-icon>
+                Réserver
+              </a>
+            </mat-card-actions>
+          }
+
           </mat-card>
         }
       </div>

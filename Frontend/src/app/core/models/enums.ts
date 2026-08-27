@@ -12,3 +12,6 @@ export type CarColor =
   | 'WHITE' | 'BLACK' | 'GREY' | 'RED' | 'BLUE' | 'SILVER' | 'GREEN' | 'YELLOW';
 export type FuelType = 'GASOLINE' | 'DIESEL' | 'HYBRID' | 'ELECTRIC';
 export type Gearbox = 'MANUAL' | 'AUTOMATIC';
+
+// --- US-5.1 : enum réservation (Backend/src/main/java/com/kriliCar/enums/ReservationStatus.java) ---
+export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
