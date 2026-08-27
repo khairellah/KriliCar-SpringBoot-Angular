@@ -1,0 +1,43 @@
+<div class="reservations-page">
+  <h1 class="page-title">Mes réservations</h1>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement de vos réservations...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (reservations().length === 0) {
+    <p class="empty-state">Vous n'avez effectué aucune réservation pour le moment.</p>
+  } @else {
+    <div class="reservations-grid">
+      @for (reservation of reservations(); track reservation.code) {
+        <mat-card class="reservation-card">
+          <mat-card-header>
+            <mat-card-title>
+              {{ reservation.car?.brandName }} {{ reservation.car?.modelName }}
+            </mat-card-title>
+            <mat-card-subtitle>Réservation {{ reservation.code }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="reservation-dates">
+              Du {{ reservation.startDate | date: 'dd/MM/yyyy' }}
+              au {{ reservation.endDate | date: 'dd/MM/yyyy' }}
+            </p>
+            @if (reservation.totalPrice != null) {
+              <p class="reservation-price">{{ reservation.totalPrice }} MAD au total</p>
+            }
+            <!-- <mat-chip [class]="statusClass(reservation.status)">
+              {{ statusLabels[reservation.status] }}
+            </mat-chip> -->
+           <!-- après -->
+            <mat-chip [class]="statusClass(reservation.status)">
+            {{ statusLabel(reservation.status) }}
+            </mat-chip> 
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

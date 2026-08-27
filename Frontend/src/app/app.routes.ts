@@ -118,6 +118,24 @@ export const routes: Routes = [
     )
 },
   {
+    // US-5.2 : Mes réservations (Client) — GET /api/v1/reservations/my
+    path: 'client/reservations',
+    canActivate: [authGuard, roleGuard('CLIENT')],
+    loadComponent: () =>
+      import('./features/client/reservations/reservation-list.component').then(
+        (m) => m.ClientReservationListComponent
+      )
+  },
+  {
+    // US-5.2 : Réservations reçues (Company) — GET /api/v1/reservations/my
+    path: 'company/reservations',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/reservations/reservation-list.component').then(
+        (m) => m.CompanyReservationListComponent
+      )
+  },
+  {
     // US-1.4 : cible de redirection de roleGuard en cas de rôle insuffisant.
     path: 'forbidden',
     loadComponent: () =>
