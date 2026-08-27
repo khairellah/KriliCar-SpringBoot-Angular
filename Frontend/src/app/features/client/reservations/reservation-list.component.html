@@ -36,6 +36,14 @@
             {{ statusLabel(reservation.status) }}
             </mat-chip> 
           </mat-card-content>
+
+          <mat-card-actions>
+            <a mat-button color="primary" [routerLink]="['/client/reservations', reservation.code]">
+              <mat-icon>visibility</mat-icon>
+              Voir le détail
+            </a>
+          </mat-card-actions>
+
         </mat-card>
       }
     </div>

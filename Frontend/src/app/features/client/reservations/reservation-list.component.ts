@@ -11,6 +11,10 @@ import { ReservationDTO } from '../../../core/models/reservation/reservation.mod
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { ReservationStatus } from '../../../core/models/enums';
 
+import { RouterLink } from '@angular/router'; // 🆕 US-5.3
+import { MatButtonModule } from '@angular/material/button'; // 🆕 US-5.3
+import { MatIconModule } from '@angular/material/icon'; // 🆕 US-5.3
+
 /**
  * US-5.2 : Consultation des réservations du Client connecté (lecture seule).
  * GET /api/v1/reservations/my — @PreAuthorize hasAnyAuthority('CLIENT','COMPANY').
@@ -22,7 +26,15 @@ import { ReservationStatus } from '../../../core/models/enums';
 @Component({
   selector: 'app-client-reservation-list',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatChipsModule, MatProgressSpinnerModule],
+  imports: [
+          CommonModule, 
+          MatCardModule, 
+          MatChipsModule, 
+          MatProgressSpinnerModule,
+          RouterLink,
+          MatButtonModule,
+          MatIconModule
+        ],
   templateUrl: './reservation-list.component.html',
   styleUrl: './reservation-list.component.scss'
 })

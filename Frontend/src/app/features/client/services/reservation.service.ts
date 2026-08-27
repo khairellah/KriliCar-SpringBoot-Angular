@@ -34,4 +34,14 @@ export class ReservationService {
   getMyReservations(): Observable<ReservationDTO[]> {
     return this.http.get<ReservationDTO[]>(`${this.apiUrl}/my`);
   }
+
+  /**
+   * US-5.3 : GET /api/v1/reservations/{code}
+   * Rôles CLIENT/COMPANY/ADMIN — l'autorisation (propriétaire ou Admin) est
+   * intégralement vérifiée côté backend (@PreAuthorize), aucun paramètre
+   * supplémentaire à envoyer par le Frontend.
+   */
+  getByCode(code: string): Observable<ReservationDTO> {
+    return this.http.get<ReservationDTO>(`${this.apiUrl}/${code}`);
+  }
 }

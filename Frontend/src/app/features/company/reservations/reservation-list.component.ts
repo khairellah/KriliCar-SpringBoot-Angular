@@ -16,6 +16,8 @@ import { ReservationDTO } from '../../../core/models/reservation/reservation.mod
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { ReservationStatus } from '../../../core/models/enums';
 
+import { RouterLink } from '@angular/router'; // 🆕 US-5.3
+import { MatIconModule } from '@angular/material/icon'; // 🆕 US-5.3
 /**
  * US-5.2 : Consultation des réservations reçues par la Company connectée
  * (lecture seule). GET /api/v1/reservations/my.
@@ -26,14 +28,14 @@ import { ReservationStatus } from '../../../core/models/enums';
 @Component({
   selector: 'app-company-reservation-list',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatTableModule, MatChipsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, MatCardModule, MatTableModule, MatChipsModule, MatProgressSpinnerModule, RouterLink, MatIconModule],
   templateUrl: './reservation-list.component.html',
   styleUrl: './reservation-list.component.scss'
 })
 export class CompanyReservationListComponent {
   private readonly reservationService = inject(ReservationService);
-
-  readonly displayedColumns = ['car', 'client', 'dates', 'price', 'status'] as const;
+// 🆕 US-5.3 : colonne "actions" ajoutée
+  readonly displayedColumns = ['car', 'client', 'dates', 'price', 'status','actions'] as const;
 
   readonly reservations = signal<ReservationDTO[]>([]);
   readonly isLoading = signal(true);

@@ -1,0 +1,86 @@
+<div class="reservation-detail-page">
+  <a class="back-link" [routerLink]="backLink()">
+    <mat-icon>arrow_back</mat-icon>
+    Retour à mes réservations
+  </a>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement de la réservation...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (reservation(); as r) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>Réservation {{ r.code }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ r.car?.brandName }} {{ r.car?.modelName }} @if (r.car?.year) { ({{ r.car?.year }}) }
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="status-row">
+          <mat-chip [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</mat-chip>
+        </div>
+
+        <h3 class="section-title">Réservation</h3>
+        <div class="info-grid">
+          <div class="info-field">
+            <span class="info-label">Date de début</span>
+            <span class="info-value">{{ r.startDate | date: 'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Date de fin</span>
+            <span class="info-value">{{ r.endDate | date: 'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Prix total</span>
+            <span class="info-value">{{ r.totalPrice != null ? (r.totalPrice + ' MAD') : '—' }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Créée le</span>
+            <span class="info-value">{{ r.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        @if (r.car; as car) {
+          <h3 class="section-title">Véhicule</h3>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="info-label">Marque / Modèle</span>
+              <span class="info-value">{{ car.brandName }} {{ car.modelName }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">VIN</span>
+              <span class="info-value">{{ car.vin }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Prix / jour</span>
+              <span class="info-value">{{ car.price != null ? (car.price + ' MAD') : '—' }}</span>
+            </div>
+          </div>
+        }
+
+        @if (role() === 'COMPANY' && r.client) {
+          <h3 class="section-title">Client</h3>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="info-label">Nom</span>
+              <span class="info-value">{{ r.client.firstName }} {{ r.client.lastName }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ r.client.email }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Téléphone</span>
+              <span class="info-value">{{ r.client.phone }}</span>
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
