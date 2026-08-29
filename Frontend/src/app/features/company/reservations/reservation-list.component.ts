@@ -18,6 +18,9 @@ import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 
+import { PendingReservationsBadgeComponent } from '../../../shared/components/pending-reservations-badge/pending-reservations-badge.component';
+
+
 /** 🔧 US-5.5 : le targetStatus 'CONFIRMED' n'est plus utilisé (Confirmer reste direct,
  * sans confirmation inline) ; on ajoute 'COMPLETED' qui suit le même pattern
  * de confirmation inline que 'CANCELLED'. */
@@ -38,7 +41,8 @@ interface PendingAction {
     MatTooltipModule,
     RouterLink,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    PendingReservationsBadgeComponent
   ],
   templateUrl: './reservation-list.component.html',
   styleUrl: './reservation-list.component.scss'

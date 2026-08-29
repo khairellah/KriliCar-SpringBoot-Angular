@@ -11,6 +11,7 @@ import { provideStore } from '@ngrx/store';
 
 import { routes } from './app.routes';
 import { authReducer } from './core/store/auth/auth.reducer';
+import { notificationsReducer } from './core/store/notifications/notifications.reducer';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { AuthService } from './core/auth/auth.service';
@@ -21,7 +22,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
-    provideStore({ auth: authReducer }),
+    //provideStore({ auth: authReducer }),
+    provideStore({ auth: authReducer, notifications: notificationsReducer }),
+    
     // US-1.4 : réhydrate la session depuis le localStorage avant le premier
     // rendu, pour que les guards disposent d'un état à jour dès la toute
     // première navigation (ex: rechargement de page sur une route protégée).

@@ -1,0 +1,22 @@
+@if (pendingCount() > 0) {
+  
+  <a mat-icon-button
+    routerLink="/company/reservations"
+    class="pending-badge-link"
+    matBadge="{{ pendingCount() }}"
+    matBadgeColor="warn"
+    matBadgeSize="small"
+    [attr.aria-label]="pendingCount() + ' réservation(s) en attente de confirmation'"
+  >
+    <mat-icon>notifications</mat-icon>
+  </a>
+} @else {
+  
+  <a  mat-icon-button
+    routerLink="/company/reservations"
+    class="pending-badge-link"
+    aria-label="Aucune réservation en attente"
+  >
+    <mat-icon>notifications_none</mat-icon>
+  </a>
+}

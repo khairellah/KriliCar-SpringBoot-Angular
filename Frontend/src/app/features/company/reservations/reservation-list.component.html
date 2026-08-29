@@ -1,5 +1,8 @@
 <div class="reservations-page">
-  <h1 class="page-title">Réservations reçues</h1>
+  <div class="page-header">
+    <h1 class="page-title">Réservations reçues</h1>
+    <app-pending-reservations-badge />
+  </div>
 
   <mat-card class="list-card">
     @if (isLoading()) {
