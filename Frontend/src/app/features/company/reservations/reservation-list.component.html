@@ -42,32 +42,33 @@
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
           <td mat-cell *matCellDef="let r">
-            <mat-chip [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</mat-chip>
+            <mat-chip [class]="statusClass(r.status)" [matTooltip]="statusDescription(r.status)">
+              {{ statusLabel(r.status) }}
+            </mat-chip>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef scope="col">Actions</th>
           <td mat-cell *matCellDef="let r">
-            @if (isPendingCancel(r.code)) {
+            @if (isPendingAction(r.code)) {
               <span class="action-confirm">
-                <span>Confirmer l'annulation ?</span>
+                <span>{{ pendingActionLabel(r.code) }}</span>
                 <button
                   mat-button
-                  color="warn"
+                  color="primary"
                   type="button"
-                  (click)="confirmCancelReservation(r.code)"
+                  (click)="confirmPendingAction(r.code)"
                   [disabled]="updatingCode() === r.code"
                 >
                   Oui
                 </button>
-                <button mat-button type="button" (click)="cancelAskCancel()" [disabled]="updatingCode() === r.code">
+                <button mat-button type="button" (click)="cancelPendingAction()" [disabled]="updatingCode() === r.code">
                   Non
                 </button>
               </span>
             } @else {
-              
-               <a mat-icon-button
+              <a mat-icon-button
                 [routerLink]="['/company/reservations', r.code]"
                 [attr.aria-label]="'Voir le détail de la réservation ' + r.code"
               >
@@ -84,6 +85,19 @@
                   [attr.aria-label]="'Confirmer la réservation ' + r.code"
                 >
                   <mat-icon>check_circle</mat-icon>
+                </button>
+              }
+
+              @if (canComplete(r.status)) {
+                <button
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  (click)="askComplete(r.code)"
+                  [disabled]="updatingCode() === r.code"
+                  [attr.aria-label]="'Marquer comme terminée la réservation ' + r.code"
+                >
+                  <mat-icon>task_alt</mat-icon>
                 </button>
               }
 

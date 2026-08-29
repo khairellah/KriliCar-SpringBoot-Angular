@@ -117,3 +117,26 @@
   display: flex;
   gap: 8px;
 }
+
+// 🆕 US-5.5 : affichage lecture seule du cycle de vie
+.status-description {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 4px 0 0;
+}
+
+.terminal-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+  font-style: italic;
+  margin-top: 12px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

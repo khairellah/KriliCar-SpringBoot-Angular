@@ -6,37 +6,26 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-// Import cross-feature volontaire : même service que côté Client, l'endpoint
-// GET /reservations/my est commun aux deux rôles (résolution du scope côté
-// backend via le token). Pattern déjà établi dans ce projet (ex: CarService
-// réutilisé côté Client dans ReservationFormComponent pour US-5.1).
 import { ReservationService } from '../../client/services/reservation.service';
 import { ReservationDTO } from '../../../core/models/reservation/reservation.model';
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { ReservationStatus } from '../../../core/models/enums';
+import { RESERVATION_STATUS_DESCRIPTIONS } from '../../../core/utils/reservation-status.util';
 
-import { RouterLink } from '@angular/router'; // 🆕 US-5.3
-import { MatIconModule } from '@angular/material/icon'; // 🆕 US-5.3
-import { MatButtonModule } from '@angular/material/button'; // 🆕 US-5.4 (manquait déjà pour le bouton "voir détail")
+import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
-/** US-5.4 : action envisagée sur une ligne, en attente de confirmation inline. */
+/** 🔧 US-5.5 : le targetStatus 'CONFIRMED' n'est plus utilisé (Confirmer reste direct,
+ * sans confirmation inline) ; on ajoute 'COMPLETED' qui suit le même pattern
+ * de confirmation inline que 'CANCELLED'. */
 interface PendingAction {
   code: string;
-  targetStatus: 'CONFIRMED' | 'CANCELLED';
+  targetStatus: 'CANCELLED' | 'COMPLETED';
 }
 
-/**
- * US-5.2 : Consultation des réservations reçues par la Company connectée
- * (lecture seule). GET /api/v1/reservations/my.
- *
- * US-5.4 : Confirmation/Annulation d'une réservation par la Company, avec
- * répercussion automatique sur l'état de la voiture (gérée exclusivement
- * côté backend, cf. ReservationServiceImpl.updateReservationStatus).
- *
- * Hors périmètre volontaire de cette US : badge de notification PENDING
- * (US-5.7).
- */
 @Component({
   selector: 'app-company-reservation-list',
   standalone: true,
@@ -46,6 +35,7 @@ interface PendingAction {
     MatTableModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     RouterLink,
     MatIconModule,
     MatButtonModule
@@ -69,10 +59,9 @@ export class CompanyReservationListComponent {
     COMPLETED: 'Terminée'
   };
 
-  // ============================ US-5.4 : Confirmation / Annulation ============================
-  /** Ligne pour laquelle une confirmation inline "Annuler" est affichée. */
+  readonly statusDescriptions = RESERVATION_STATUS_DESCRIPTIONS;
+
   readonly pendingAction = signal<PendingAction | null>(null);
-  /** Code de la réservation en cours de mise à jour (désactive ses boutons). */
   readonly updatingCode = signal<string | null>(null);
   readonly actionErrorMessage = signal<string | null>(null);
 
@@ -111,44 +100,68 @@ export class CompanyReservationListComponent {
     return this.statusLabels[status];
   }
 
-  // ============================ US-5.4 : règles d'affichage (§8 Spec Frontend) ============================
+  statusDescription(status: ReservationStatus): string {
+    return this.statusDescriptions[status];
+  }
 
-  /** PENDING → [Company] Confirmer → CONFIRMED */
   canConfirm(status: ReservationStatus): boolean {
     return status === 'PENDING';
   }
 
-  /** PENDING/CONFIRMED → [Company] Annuler → CANCELLED */
   canCancel(status: ReservationStatus): boolean {
     return status === 'PENDING' || status === 'CONFIRMED';
   }
 
-  // ============================ US-5.4 : Confirmer (action directe) ============================
+  /** 🔧 US-5.5 : seul point d'entrée qui repasse aussi la voiture à AVAILABLE côté backend. */
+  canComplete(status: ReservationStatus): boolean {
+    return status === 'CONFIRMED';
+  }
 
   confirmReservation(code: string): void {
     this.applyStatusChange(code, 'CONFIRMED');
   }
-
-  // ============================ US-5.4 : Annuler (confirmation inline requise) ============================
 
   askCancel(code: string): void {
     this.actionErrorMessage.set(null);
     this.pendingAction.set({ code, targetStatus: 'CANCELLED' });
   }
 
-  cancelAskCancel(): void {
+  // 🔧 US-5.5
+  askComplete(code: string): void {
+    this.actionErrorMessage.set(null);
+    this.pendingAction.set({ code, targetStatus: 'COMPLETED' });
+  }
+
+  cancelPendingAction(): void {
     this.pendingAction.set(null);
   }
 
-  confirmCancelReservation(code: string): void {
-    this.applyStatusChange(code, 'CANCELLED');
+  confirmPendingAction(code: string): void {
+    const action = this.pendingAction();
+    if (!action || action.code !== code) {
+      return;
+    }
+    this.applyStatusChange(code, action.targetStatus);
   }
 
-  isPendingCancel(code: string): boolean {
+  isPendingAction(code: string): boolean {
     return this.pendingAction()?.code === code;
   }
 
-  private applyStatusChange(code: string, targetStatus: 'CONFIRMED' | 'CANCELLED'): void {
+  pendingActionLabel(code: string): string {
+    const action = this.pendingAction();
+    if (!action || action.code !== code) {
+      return '';
+    }
+    return action.targetStatus === 'CANCELLED'
+      ? "Confirmer l'annulation ?"
+      : 'Confirmer que le véhicule a été rendu ?';
+  }
+
+  private applyStatusChange(
+    code: string,
+    targetStatus: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+  ): void {
     this.actionErrorMessage.set(null);
     this.updatingCode.set(code);
 

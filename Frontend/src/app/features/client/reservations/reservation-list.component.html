@@ -32,7 +32,7 @@
               {{ statusLabels[reservation.status] }}
             </mat-chip> -->
            <!-- après -->
-            <mat-chip [class]="statusClass(reservation.status)">
+            <mat-chip [class]="statusClass(reservation.status)" [matTooltip]="statusDescription(reservation.status)">
             {{ statusLabel(reservation.status) }}
             </mat-chip> 
           </mat-card-content>

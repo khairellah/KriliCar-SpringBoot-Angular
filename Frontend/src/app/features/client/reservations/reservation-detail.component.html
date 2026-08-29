@@ -21,8 +21,10 @@
       </mat-card-header>
 
       <mat-card-content>
+        <!-- 🆕 US-5.5 : badge + description du cycle de vie (lecture seule) -->
         <div class="status-row">
           <mat-chip [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</mat-chip>
+          <p class="status-description">{{ statusDescriptions[r.status] }}</p>
         </div>
 
         <h3 class="section-title">Réservation</h3>
@@ -81,8 +83,7 @@
           </div>
         }
 
-        <!-- ============================ US-5.4 : Actions Company ============================ -->
-        @if (isCompany() && (canConfirm() || canCancel())) {
+                @if (isCompany() && (canConfirm() || canCancel() || canComplete())) {
           <h3 class="section-title">Actions</h3>
 
           @if (actionErrorMessage()) {
@@ -107,6 +108,24 @@
                 </button>
               </div>
             </div>
+          } @else if (askingComplete()) {
+            <div class="action-confirm">
+              <span>Confirmer que le véhicule a été rendu et que la réservation est terminée ?</span>
+              <div class="action-confirm-buttons">
+                <button
+                  mat-button
+                  color="primary"
+                  type="button"
+                  (click)="confirmCompleteReservation()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  Oui, terminer
+                </button>
+                <button mat-button type="button" (click)="cancelAskComplete()" [disabled]="isUpdatingStatus()">
+                  Non
+                </button>
+              </div>
+            </div>
           } @else {
             <div class="action-buttons">
               @if (canConfirm()) {
@@ -127,6 +146,18 @@
                   }
                 </button>
               }
+              @if (canComplete()) {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="askComplete()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  <mat-icon>task_alt</mat-icon>
+                  Marquer comme terminée
+                </button>
+              }
               @if (canCancel()) {
                 <button
                   mat-stroked-button
@@ -141,6 +172,16 @@
               }
             </div>
           }
+        }
+
+        <!-- 🆕 US-5.5 : rappel explicite de l'état terminal pour la Company,
+             quand aucune action (Confirmer/Annuler) n'est proposée -->
+        @if (isCompany() && isTerminal()) {
+          <p class="terminal-note">
+            <mat-icon>lock</mat-icon>
+            Cette réservation est dans un état terminal ({{ statusLabel(r.status) }}) :
+            aucune action supplémentaire n'est possible.
+          </p>
         }
       </mat-card-content>
     </mat-card>

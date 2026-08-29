@@ -5,36 +5,31 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip'; // 🆕 US-5.5
 
 import { ReservationService } from '../services/reservation.service';
 import { ReservationDTO } from '../../../core/models/reservation/reservation.model';
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { ReservationStatus } from '../../../core/models/enums';
+import { RESERVATION_STATUS_DESCRIPTIONS } from '../../../core/utils/reservation-status.util'; // 🆕 US-5.5
 
-import { RouterLink } from '@angular/router'; // 🆕 US-5.3
-import { MatButtonModule } from '@angular/material/button'; // 🆕 US-5.3
-import { MatIconModule } from '@angular/material/icon'; // 🆕 US-5.3
+import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
-/**
- * US-5.2 : Consultation des réservations du Client connecté (lecture seule).
- * GET /api/v1/reservations/my — @PreAuthorize hasAnyAuthority('CLIENT','COMPANY').
- *
- * Hors périmètre volontaire de cette US : détail réservation + annulation
- * (US-5.6), bouton d'action quelconque. Ce composant se contente d'afficher
- * la liste avec le statut codé par couleur (§4.2 Spec Frontend).
- */
 @Component({
   selector: 'app-client-reservation-list',
   standalone: true,
   imports: [
-          CommonModule, 
-          MatCardModule, 
-          MatChipsModule, 
-          MatProgressSpinnerModule,
-          RouterLink,
-          MatButtonModule,
-          MatIconModule
-        ],
+    CommonModule,
+    MatCardModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule, // 🆕 US-5.5
+    RouterLink,
+    MatButtonModule,
+    MatIconModule
+  ],
   templateUrl: './reservation-list.component.html',
   styleUrl: './reservation-list.component.scss'
 })
@@ -52,6 +47,9 @@ export class ClientReservationListComponent {
     COMPLETED: 'Terminée'
   };
 
+  // 🆕 US-5.5 : description au survol du badge (affichage lecture seule du cycle de vie)
+  readonly statusDescriptions = RESERVATION_STATUS_DESCRIPTIONS;
+
   constructor() {
     this.loadReservations();
   }
@@ -62,7 +60,6 @@ export class ClientReservationListComponent {
 
     this.reservationService.getMyReservations().subscribe({
       next: (reservations) => {
-        // Tri par date de création décroissante : les plus récentes en premier
         this.reservations.set(
           [...reservations].sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -84,7 +81,12 @@ export class ClientReservationListComponent {
     return 'status-' + status.toLowerCase();
   }
 
-    statusLabel(status: ReservationStatus): string {
+  statusLabel(status: ReservationStatus): string {
     return this.statusLabels[status];
+  }
+
+  // 🆕 Fix US-5.5
+  statusDescription(status: ReservationStatus): string {
+    return this.statusDescriptions[status];
   }
 }
