@@ -64,4 +64,20 @@ export class ReservationService {
     const params = new HttpParams().set('status', status);
     return this.http.patch<ReservationDTO>(`${this.apiUrl}/${code}/status`, null, { params });
   }
+
+  /**
+   * US-5.6 : PATCH /api/v1/reservations/{code}/cancel
+   * Réservé au Client propriétaire de la réservation
+   * (@PreAuthorize("hasAuthority('CLIENT') and isReservationOwnedByClient(...)")
+   * côté backend). Endpoint DISTINCT de updateStatus() : la règle métier est
+   * stricte et non paramétrable — le backend refuse (409 via IllegalStateException
+   * dans ReservationServiceImpl.cancelReservationByClient) toute annulation si
+   * le statut courant n'est pas PENDING. Contrairement à l'annulation Company
+   * (US-5.4, /status), qui reste possible sur PENDING et CONFIRMED, ce flux
+   * Client n'accepte jamais CONFIRMED — c'est alors à la Company d'agir
+   * (§6.4 Spec Globale : éviter les annulations client sans contact préalable).
+   */
+  cancelReservation(code: string): Observable<ReservationDTO> {
+    return this.http.patch<ReservationDTO>(`${this.apiUrl}/${code}/cancel`, null);
+  }
 }

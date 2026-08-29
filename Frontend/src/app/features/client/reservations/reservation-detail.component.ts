@@ -61,20 +61,26 @@ export class ReservationDetailComponent {
 
   readonly isCompany = computed(() => this.role() === 'COMPANY');
 
+  // 🆕 US-5.6
+  readonly isClient = computed(() => this.role() === 'CLIENT');
+
   readonly canConfirm = computed(() => this.reservation()?.status === 'PENDING');
+
+  /** Annulation côté Company (US-5.4, via PATCH /status) : autorisée sur PENDING et CONFIRMED. */
   readonly canCancel = computed(() => {
     const status = this.reservation()?.status;
     return status === 'PENDING' || status === 'CONFIRMED';
   });
 
   /**
-   * 🔧 Extension US-5.5 : Marquer comme terminée (COMPLETED), disponible
-   * uniquement pour la Company quand la réservation est CONFIRMED. Seul point
-   * d'entrée qui repasse aussi la voiture à AVAILABLE côté backend
-   * (ReservationServiceImpl.updateReservationStatus) — aucun job planifié
-   * n'existe pour le faire automatiquement, une action manuelle est donc
-   * indispensable pour que le cycle de vie puisse réellement se terminer.
+   * 🆕 US-5.6 : Annulation côté Client (via PATCH /cancel) : autorisée
+   * UNIQUEMENT sur PENDING — règle stricte distincte de canCancel (Company),
+   * conformément à §6.4 Spec Globale et §4.2 Spec Frontend.
    */
+  readonly canClientCancel = computed(
+    () => this.isClient() && this.reservation()?.status === 'PENDING'
+  );
+
   readonly canComplete = computed(() => this.reservation()?.status === 'CONFIRMED');
 
   readonly isTerminal = computed(() => {
@@ -83,7 +89,7 @@ export class ReservationDetailComponent {
   });
 
   readonly askingCancel = signal(false);
-  readonly askingComplete = signal(false); // 🔧 US-5.5
+  readonly askingComplete = signal(false);
   readonly isUpdatingStatus = signal(false);
   readonly actionErrorMessage = signal<string | null>(null);
 
@@ -128,11 +134,21 @@ export class ReservationDetailComponent {
     this.askingCancel.set(false);
   }
 
+  /**
+   * 🔧 US-5.6 : point d'entrée unique du bouton "Oui, annuler" dans le
+   * dialogue de confirmation inline, partagé par les deux rôles. Il route
+   * vers le bon appel API selon qui est connecté : le Client utilise
+   * l'endpoint dédié /cancel (règle stricte PENDING uniquement), la Company
+   * continue d'utiliser /status comme avant (US-5.4, inchangé).
+   */
   confirmCancelReservation(): void {
+    if (this.isClient()) {
+      this.performClientCancel();
+      return;
+    }
     this.applyStatusChange('CANCELLED');
   }
 
-  // 🔧 US-5.5 : mêmes règles UX que l'annulation (action irréversible → confirmation inline)
   askComplete(): void {
     this.actionErrorMessage.set(null);
     this.askingComplete.set(true);
@@ -146,6 +162,28 @@ export class ReservationDetailComponent {
     this.applyStatusChange('COMPLETED');
   }
 
+  /** 🆕 US-5.6 : appel dédié PATCH /reservations/{code}/cancel (Client, PENDING uniquement). */
+  private performClientCancel(): void {
+    this.actionErrorMessage.set(null);
+    this.isUpdatingStatus.set(true);
+
+    this.reservationService.cancelReservation(this.code).subscribe({
+      next: (updated) => {
+        this.isUpdatingStatus.set(false);
+        this.askingCancel.set(false);
+        this.reservation.set(updated);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isUpdatingStatus.set(false);
+        const body = err.error as ErrorResponse | undefined;
+        this.actionErrorMessage.set(
+          body?.message ?? "Impossible d'annuler cette réservation. Veuillez réessayer plus tard."
+        );
+      }
+    });
+  }
+
+  /** Utilisé par la Company (US-5.4/5.5) : PATCH /reservations/{code}/status. */
   private applyStatusChange(targetStatus: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'): void {
     this.actionErrorMessage.set(null);
     this.isUpdatingStatus.set(true);

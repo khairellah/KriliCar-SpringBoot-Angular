@@ -21,7 +21,6 @@
       </mat-card-header>
 
       <mat-card-content>
-        <!-- 🆕 US-5.5 : badge + description du cycle de vie (lecture seule) -->
         <div class="status-row">
           <mat-chip [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</mat-chip>
           <p class="status-description">{{ statusDescriptions[r.status] }}</p>
@@ -83,7 +82,9 @@
           </div>
         }
 
-                @if (isCompany() && (canConfirm() || canCancel() || canComplete())) {
+        <!-- 🔧 US-5.6 : le bloc Actions s'affiche désormais aussi pour le Client,
+             uniquement si sa réservation est PENDING (canClientCancel). -->
+        @if ((isCompany() && (canConfirm() || canCancel() || canComplete())) || canClientCancel()) {
           <h3 class="section-title">Actions</h3>
 
           @if (actionErrorMessage()) {
@@ -128,7 +129,7 @@
             </div>
           } @else {
             <div class="action-buttons">
-              @if (canConfirm()) {
+              @if (isCompany() && canConfirm()) {
                 <button
                   mat-flat-button
                   color="primary"
@@ -146,7 +147,7 @@
                   }
                 </button>
               }
-              @if (canComplete()) {
+              @if (isCompany() && canComplete()) {
                 <button
                   mat-flat-button
                   color="primary"
@@ -158,7 +159,7 @@
                   Marquer comme terminée
                 </button>
               }
-              @if (canCancel()) {
+              @if (isCompany() && canCancel()) {
                 <button
                   mat-stroked-button
                   color="warn"
@@ -170,12 +171,23 @@
                   Annuler
                 </button>
               }
+              <!-- 🆕 US-5.6 : bouton Annuler dédié au Client, PENDING uniquement -->
+              @if (canClientCancel()) {
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  type="button"
+                  (click)="askCancel()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  <mat-icon>cancel</mat-icon>
+                  Annuler ma réservation
+                </button>
+              }
             </div>
           }
         }
 
-        <!-- 🆕 US-5.5 : rappel explicite de l'état terminal pour la Company,
-             quand aucune action (Confirmer/Annuler) n'est proposée -->
         @if (isCompany() && isTerminal()) {
           <p class="terminal-note">
             <mat-icon>lock</mat-icon>
