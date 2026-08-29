@@ -98,3 +98,22 @@
   background-color: #e6f4ea !important;
   color: #1e4620 !important;
 }
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.action-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.action-confirm-buttons {
+  display: flex;
+  gap: 8px;
+}

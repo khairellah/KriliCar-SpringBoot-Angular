@@ -12,6 +12,10 @@
     } @else if (reservations().length === 0) {
       <p class="empty-state">Aucune réservation reçue pour le moment.</p>
     } @else {
+      @if (actionErrorMessage()) {
+        <div class="error-banner" role="alert">{{ actionErrorMessage() }}</div>
+      }
+
       <table mat-table [dataSource]="reservations()" class="reservations-table">
         <ng-container matColumnDef="car">
           <th mat-header-cell *matHeaderCellDef scope="col">Voiture</th>
@@ -38,23 +42,64 @@
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
           <td mat-cell *matCellDef="let r">
-            <!-- <mat-chip [class]="statusClass(r.status)">{{ statusLabels[r.status] }}</mat-chip> -->
-            <!-- après -->
             <mat-chip [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</mat-chip>
           </td>
         </ng-container>
 
-          
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef scope="col">Actions</th>
           <td mat-cell *matCellDef="let r">
-            <a
-              mat-icon-button
-              [routerLink]="['/company/reservations', r.code]"
-              [attr.aria-label]="'Voir le détail de la réservation ' + r.code"
-            >
-              <mat-icon>visibility</mat-icon>
-            </a>
+            @if (isPendingCancel(r.code)) {
+              <span class="action-confirm">
+                <span>Confirmer l'annulation ?</span>
+                <button
+                  mat-button
+                  color="warn"
+                  type="button"
+                  (click)="confirmCancelReservation(r.code)"
+                  [disabled]="updatingCode() === r.code"
+                >
+                  Oui
+                </button>
+                <button mat-button type="button" (click)="cancelAskCancel()" [disabled]="updatingCode() === r.code">
+                  Non
+                </button>
+              </span>
+            } @else {
+              
+               <a mat-icon-button
+                [routerLink]="['/company/reservations', r.code]"
+                [attr.aria-label]="'Voir le détail de la réservation ' + r.code"
+              >
+                <mat-icon>visibility</mat-icon>
+              </a>
+
+              @if (canConfirm(r.status)) {
+                <button
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  (click)="confirmReservation(r.code)"
+                  [disabled]="updatingCode() === r.code"
+                  [attr.aria-label]="'Confirmer la réservation ' + r.code"
+                >
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+              }
+
+              @if (canCancel(r.status)) {
+                <button
+                  mat-icon-button
+                  color="warn"
+                  type="button"
+                  (click)="askCancel(r.code)"
+                  [disabled]="updatingCode() === r.code"
+                  [attr.aria-label]="'Annuler la réservation ' + r.code"
+                >
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              }
+            }
           </td>
         </ng-container>
 

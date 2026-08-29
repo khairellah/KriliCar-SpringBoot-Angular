@@ -80,6 +80,68 @@
             </div>
           </div>
         }
+
+        <!-- ============================ US-5.4 : Actions Company ============================ -->
+        @if (isCompany() && (canConfirm() || canCancel())) {
+          <h3 class="section-title">Actions</h3>
+
+          @if (actionErrorMessage()) {
+            <div class="error-banner" role="alert">{{ actionErrorMessage() }}</div>
+          }
+
+          @if (askingCancel()) {
+            <div class="action-confirm">
+              <span>Confirmer l'annulation de cette réservation ?</span>
+              <div class="action-confirm-buttons">
+                <button
+                  mat-button
+                  color="warn"
+                  type="button"
+                  (click)="confirmCancelReservation()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  Oui, annuler
+                </button>
+                <button mat-button type="button" (click)="cancelAskCancel()" [disabled]="isUpdatingStatus()">
+                  Non
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="action-buttons">
+              @if (canConfirm()) {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="confirmReservation()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  @if (isUpdatingStatus()) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <ng-container>
+                      <mat-icon>check_circle</mat-icon>
+                      Confirmer
+                    </ng-container>
+                  }
+                </button>
+              }
+              @if (canCancel()) {
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  type="button"
+                  (click)="askCancel()"
+                  [disabled]="isUpdatingStatus()"
+                >
+                  <mat-icon>cancel</mat-icon>
+                  Annuler
+                </button>
+              }
+            </div>
+          }
+        }
       </mat-card-content>
     </mat-card>
   }

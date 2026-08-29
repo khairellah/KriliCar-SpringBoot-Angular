@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { ReservationDTO } from '../../../core/models/reservation/reservation.model';
 import { ReservationCreateRequest } from '../../../core/models/reservation/reservation-request.model';
+import { ReservationStatus } from '../../../core/models/enums';
 
 /**
  * US-5.1 / US-5.2 : Service Réservations, aligné 1-pour-1 sur
@@ -43,5 +44,24 @@ export class ReservationService {
    */
   getByCode(code: string): Observable<ReservationDTO> {
     return this.http.get<ReservationDTO>(`${this.apiUrl}/${code}`);
+  }
+
+  /**
+   * US-5.4 : PATCH /api/v1/reservations/{code}/status
+   * Réservé à la Company propriétaire du véhicule (ou Admin), vérifié côté
+   * backend via @PreAuthorize + isCarOfReservationOwnedByCompany.
+   *
+   * ⚠️ `status` est transmis en query param (@RequestParam côté backend),
+   * jamais en body — cf. ReservationController.updateStatus.
+   *
+   * Le backend n'impose aucune restriction sur le statut courant lors de
+   * cette transition (pas de 409 métier ici) : c'est au Frontend de
+   * n'afficher les actions "Confirmer"/"Annuler" que pour les transitions
+   * valides du cycle de vie (§8 Spec Frontend), pour ne jamais proposer une
+   * action incohérente à l'utilisateur.
+   */
+  updateStatus(code: string, status: ReservationStatus): Observable<ReservationDTO> {
+    const params = new HttpParams().set('status', status);
+    return this.http.patch<ReservationDTO>(`${this.apiUrl}/${code}/status`, null, { params });
   }
 }

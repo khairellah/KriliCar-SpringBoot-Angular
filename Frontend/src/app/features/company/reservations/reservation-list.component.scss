@@ -65,3 +65,11 @@
   background-color: #e6f4ea !important;
   color: #1e4620 !important;
 }
+
+.action-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
