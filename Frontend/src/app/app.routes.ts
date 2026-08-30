@@ -118,6 +118,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-6.2 : Demandes de Boost en attente + activation (Admin)
+    path: 'admin/companies/boost-pending',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/boost-pending/admin-boost-pending.component').then(
+        (m) => m.AdminBoostPendingComponent
+      )
+  },
+  {
   // US-5.1 : Création réservation (Client) — protégé authGuard + roleGuard(['CLIENT'])
   path: 'client/reservations/new/:carCode',
   canActivate: [authGuard, roleGuard('CLIENT')],

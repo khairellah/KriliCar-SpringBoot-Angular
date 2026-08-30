@@ -1,0 +1,54 @@
+.boost-pending-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  box-sizing: border-box;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin: 0;
+}
+
+.list-card {
+  width: 100%;
+}
+
+.boost-table {
+  width: 100%;
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.6);
+  padding: 16px 0;
+  text-align: center;
+}
+
+.initial-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-size: 0.9rem;
+}
+
+.activate-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}

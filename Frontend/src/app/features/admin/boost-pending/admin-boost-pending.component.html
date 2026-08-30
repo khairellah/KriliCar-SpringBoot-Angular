@@ -1,0 +1,90 @@
+<div class="boost-pending-page">
+  <h1 class="page-title">Demandes de Boost en attente</h1>
+
+  <mat-card class="list-card">
+    @if (isListLoading()) {
+      <div class="initial-loading" role="status">
+        <mat-spinner diameter="24" />
+        <span>Chargement des demandes...</span>
+      </div>
+    } @else if (listErrorMessage()) {
+      <div class="error-banner" role="alert">{{ listErrorMessage() }}</div>
+    } @else if (companies().length === 0) {
+      <p class="empty-state">Aucune demande de Boost en attente pour le moment.</p>
+    } @else {
+      @if (actionErrorMessage()) {
+        <div class="error-banner" role="alert">{{ actionErrorMessage() }}</div>
+      }
+
+      <table mat-table [dataSource]="companies()" class="boost-table">
+        <ng-container matColumnDef="companyName">
+          <th mat-header-cell *matHeaderCellDef scope="col">Société</th>
+          <td mat-cell *matCellDef="let company">{{ company.companyName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef scope="col">Email</th>
+          <td mat-cell *matCellDef="let company">{{ company.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="city">
+          <th mat-header-cell *matHeaderCellDef scope="col">Ville</th>
+          <td mat-cell *matCellDef="let company">{{ company.city }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="boostRequestedAt">
+          <th mat-header-cell *matHeaderCellDef scope="col">Demande envoyée le</th>
+          <td mat-cell *matCellDef="let company">
+            {{ company.boostRequestedAt ? (company.boostRequestedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef scope="col">Actions</th>
+          <td mat-cell *matCellDef="let company">
+            @if (confirmingCode() === company.code) {
+              <span class="activate-confirm">
+                <span>Confirmer l'activation du Boost ?</span>
+                <button
+                  mat-button
+                  color="primary"
+                  type="button"
+                  (click)="confirmActivate(company.code)"
+                  [disabled]="activatingCode() === company.code"
+                >
+                  @if (activatingCode() === company.code) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    Oui, activer
+                  }
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  (click)="cancelActivate()"
+                  [disabled]="activatingCode() === company.code"
+                >
+                  Non
+                </button>
+              </span>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                (click)="askActivate(company.code)"
+                [disabled]="activatingCode() !== null"
+              >
+                <mat-icon>rocket_launch</mat-icon>
+                Activer le Boost
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    }
+  </mat-card>
+</div>
