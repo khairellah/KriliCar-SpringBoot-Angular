@@ -1,0 +1,69 @@
+<div class="boost-page">
+  <h1 class="page-title">Option Boost</h1>
+
+  <mat-card class="boost-card">
+    <mat-card-header>
+      <mat-card-title>Mise en avant de vos annonces</mat-card-title>
+      <mat-card-subtitle>
+        Une fois validé par l'administrateur, vos annonces sont mises en avant dans les résultats
+        de recherche Client, par rapport aux sociétés non boostées.
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (isInitialLoading()) {
+        <div class="initial-loading" role="status">
+          <mat-spinner diameter="24" />
+          <span>Chargement du statut Boost...</span>
+        </div>
+      } @else if (initialLoadError()) {
+        <div class="error-banner" role="alert">{{ initialLoadError() }}</div>
+      } @else if (profile()) {
+        <div class="status-row">
+          <mat-chip [class]="statusClass()">{{ statusLabel() }}</mat-chip>
+        </div>
+
+        @if (profile()!.isBooster) {
+          <p class="info-text">
+            Votre société bénéficie actuellement de l'option Boost. Vos annonces sont mises en avant.
+          </p>
+        } @else if (profile()!.boostRequested) {
+          <p class="info-text">
+            Votre demande est en attente de validation par l'administrateur. Aucune action
+            supplémentaire n'est requise de votre part.
+          </p>
+        } @else {
+          <p class="info-text">
+            Vous pouvez demander l'activation du Boost pour mettre en avant vos annonces.
+            L'activation est validée manuellement par l'administrateur (paiement géré hors ligne).
+          </p>
+        }
+
+        @if (requestSuccessMessage()) {
+          <div class="success-banner" role="status">{{ requestSuccessMessage() }}</div>
+        }
+        @if (requestErrorMessage()) {
+          <div class="error-banner" role="alert">{{ requestErrorMessage() }}</div>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="request-btn"
+          (click)="requestBoost()"
+          [disabled]="!canRequestBoost() || isRequesting()"
+        >
+          @if (isRequesting()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            <ng-container>
+              <mat-icon>rocket_launch</mat-icon>
+              Demander le Boost
+            </ng-container>
+          }
+        </button>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>s

@@ -53,4 +53,14 @@ export class CompanyService {
       request
     );
   }
+
+    /**
+   * US-6.1 : POST /api/v1/companies/boost/request
+   * Demande d'activation du Boost par la Company connectée (email résolu
+   * côté backend via Principal). Idempotent côté backend (409 si le Boost
+   * est déjà actif ou si une demande est déjà en attente).
+   */
+  requestBoost(): Observable<CompanyProfileResponse> {
+    return this.http.post<CompanyProfileResponse>(`${this.apiUrl}/boost/request`, {});
+  }
 }

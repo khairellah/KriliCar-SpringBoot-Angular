@@ -109,6 +109,15 @@ export const routes: Routes = [
       import('./features/company/cars/car-form.component').then((m) => m.CarFormComponent)
   },
   {
+    // US-6.1 : Demande de Boost (Company) — protégé authGuard + roleGuard(['COMPANY'])
+    path: 'company/boost',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/boost/company-boost.component').then(
+        (m) => m.CompanyBoostComponent
+      )
+  },
+  {
   // US-5.1 : Création réservation (Client) — protégé authGuard + roleGuard(['CLIENT'])
   path: 'client/reservations/new/:carCode',
   canActivate: [authGuard, roleGuard('CLIENT')],
