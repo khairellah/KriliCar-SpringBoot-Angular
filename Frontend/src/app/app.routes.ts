@@ -127,6 +127,15 @@ export const routes: Routes = [
       )
   },
   {
+    // US-7.1 : Liste des sociétés filtrable (Admin) — protégé authGuard + roleGuard(['ADMIN'])
+    path: 'admin/companies',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/companies/admin-company-list.component').then(
+        (m) => m.AdminCompanyListComponent
+      )
+  },
+  {
   // US-5.1 : Création réservation (Client) — protégé authGuard + roleGuard(['CLIENT'])
   path: 'client/reservations/new/:carCode',
   canActivate: [authGuard, roleGuard('CLIENT')],
