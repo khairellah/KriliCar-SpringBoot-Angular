@@ -94,3 +94,13 @@
   background-color: rgba(0, 0, 0, 0.08) !important;
   color: rgba(0, 0, 0, 0.6) !important;
 }
+
+// ============================ US-7.2 : Actions activation/désactivation ============================
+.toggle-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+  max-width: 280px;
+}

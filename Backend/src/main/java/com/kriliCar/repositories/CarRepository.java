@@ -30,6 +30,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
     boolean existsByCode(String code);
 
     // Recherche Simple : par Nom de Marque + Nom de Modèle + Ville de la Compagnie + Disponibilité
+    // + Filtre société active (une Company désactivée n'apparaît plus dans les résultats)
     @Query("SELECT c FROM Car c WHERE " +
             "(:brand IS NULL OR :brand = '' OR LOWER(c.brand.name) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
             "(:model IS NULL OR :model = '' OR LOWER(c.model.name) LIKE LOWER(CONCAT('%', :model, '%'))) AND " +
@@ -39,7 +40,8 @@ public interface CarRepository extends JpaRepository<Car, Long> {
             "(:minMileage IS NULL OR c.mileage >= :minMileage) AND " +
             "(:maxMileage IS NULL OR c.mileage <= :maxMileage) AND " +
             "(:nbrSeats IS NULL OR c.nbrSeats = :nbrSeats) AND " +
-            "c.availability = :status")
+            "c.availability = :status AND " +
+            "c.company.active = true")
     Page<Car> searchCars(
             @Param("brand") String brand,
             @Param("model") String model,

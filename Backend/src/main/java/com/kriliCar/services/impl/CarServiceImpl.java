@@ -213,9 +213,18 @@ public class CarServiceImpl implements CarService {
     @Override
     @Transactional(readOnly = true)
     public CarDTO getCarByCode(String code) {
-        return carRepository.findByCode(code)
-                .map(carMapper::toDTO)
+        Car car = carRepository.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Car", "code", code));
+
+        // Cohérence avec la recherche (US-3.3) : une voiture appartenant à une
+        // société désactivée par l'Admin (US-7.2) est traitée comme injoignable
+        // publiquement — même comportement qu'un 404 "code inexistant", pour ne
+        // pas révéler l'existence de la voiture ni le statut de la société.
+        if (car.getCompany() == null || !Boolean.TRUE.equals(car.getCompany().getActive())) {
+            throw new ResourceNotFoundException("Car", "code", code);
+        }
+
+        return carMapper.toDTO(car);
     }
 
     @Override

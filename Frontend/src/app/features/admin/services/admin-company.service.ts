@@ -14,10 +14,11 @@ import { CompanyAdminSummaryDTO } from '../../../core/models/admin/company-admin
  *
  * US-6.2 : getPendingBoostRequests() / activateBoost()
  * US-7.1 : getCompanies() — liste filtrable (active, boosted)
+ * US-7.2 : activateCompany() / deactivateCompany() — activation/désactivation de compte
  *
- * ⚠️ Périmètre : US-7.2 (activation/désactivation) et US-7.5 (détail complet)
- * restent hors périmètre de ce service pour l'instant — à compléter lors de
- * ces US ultérieures, sans jamais dupliquer ce fichier.
+ * ⚠️ Périmètre : US-7.5 (détail complet) reste hors périmètre de ce service
+ * pour l'instant — à compléter lors de cette US ultérieure, sans jamais
+ * dupliquer ce fichier.
  */
 @Injectable({ providedIn: 'root' })
 export class AdminCompanyService {
@@ -61,5 +62,28 @@ export class AdminCompanyService {
    */
   activateBoost(code: string): Observable<CompanyProfileResponse> {
     return this.http.patch<CompanyProfileResponse>(`${this.apiUrl}/${code}/boost/activate`, null);
+  }
+
+  /**
+   * US-7.2 : PATCH /api/v1/admins/companies/{code}/activate
+   * Active le compte d'une Company (blocage d'accès levé, aucune donnée
+   * supprimée : voitures et réservations conservées).
+   * Idempotent côté backend : 409 (IllegalStateException) si déjà active
+   * (cf. CompanyServiceImpl.setCompanyActiveStatus).
+   */
+  activateCompany(code: string): Observable<CompanyAdminSummaryDTO> {
+    return this.http.patch<CompanyAdminSummaryDTO>(`${this.apiUrl}/${code}/activate`, null);
+  }
+
+  /**
+   * US-7.2 : PATCH /api/v1/admins/companies/{code}/deactivate
+   * Désactive le compte d'une Company (blocage d'accès, données conservées).
+   * Idempotent côté backend : 409 (IllegalStateException) si déjà désactivée.
+   * Effet immédiat : login bloqué (403 DisabledException, cf. AuthController)
+   * + tout JWT déjà émis devient inopérant dès la requête suivante
+   * (JwtAuthTokenFilter.isEnabled() côté backend).
+   */
+  deactivateCompany(code: string): Observable<CompanyAdminSummaryDTO> {
+    return this.http.patch<CompanyAdminSummaryDTO>(`${this.apiUrl}/${code}/deactivate`, null);
   }
 }

@@ -52,6 +52,10 @@
     } @else {
       <p class="results-count">{{ companies().length }} société(s)</p>
 
+      @if (actionErrorMessage()) {
+        <div class="error-banner" role="alert">{{ actionErrorMessage() }}</div>
+      }
+
       <table mat-table [dataSource]="companies()" class="companies-table">
         <ng-container matColumnDef="companyName">
           <th mat-header-cell *matHeaderCellDef scope="col">Société</th>
@@ -99,6 +103,67 @@
           <th mat-header-cell *matHeaderCellDef scope="col">Inscrite le</th>
           <td mat-cell *matCellDef="let company">
             {{ company.createdAt | date: 'dd/MM/yyyy' }}
+          </td>
+        </ng-container>
+
+        <!-- ============================ US-7.2 : Actions activation/désactivation ============================ -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef scope="col">Actions</th>
+          <td mat-cell *matCellDef="let company">
+            @if (isConfirming(company.code)) {
+              <span class="toggle-confirm">
+                @if (company.active) {
+                  <span>Désactiver ce compte ? L'accès sera bloqué immédiatement.</span>
+                } @else {
+                  <span>Réactiver ce compte ?</span>
+                }
+                <button
+                  mat-button
+                  [color]="company.active ? 'warn' : 'primary'"
+                  type="button"
+                  (click)="confirmToggleActive(company.code)"
+                  [disabled]="updatingCode() === company.code"
+                >
+                  @if (updatingCode() === company.code) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    Oui
+                  }
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  (click)="cancelToggleActive()"
+                  [disabled]="updatingCode() === company.code"
+                >
+                  Non
+                </button>
+              </span>
+            } @else if (company.active) {
+              <button
+                mat-stroked-button
+                color="warn"
+                type="button"
+                (click)="askToggleActive(company.code, false)"
+                [disabled]="updatingCode() !== null"
+                matTooltip="Bloquer l'accès de cette société (données conservées)"
+              >
+                <mat-icon>block</mat-icon>
+                Désactiver
+              </button>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                (click)="askToggleActive(company.code, true)"
+                [disabled]="updatingCode() !== null"
+                matTooltip="Rétablir l'accès de cette société"
+              >
+                <mat-icon>check_circle</mat-icon>
+                Activer
+              </button>
+            }
           </td>
         </ng-container>
 
