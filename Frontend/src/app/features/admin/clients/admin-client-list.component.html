@@ -1,0 +1,83 @@
+<div class="clients-page">
+  <h1 class="page-title">Gestion des clients</h1>
+
+  <!-- ============================ FILTRE ============================ -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Statut du compte</mat-label>
+            <mat-select formControlName="active" id="active-filter">
+              @for (option of activeFilterOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="onReset()" [disabled]="isListLoading()">
+            Réinitialiser
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isListLoading()">
+            <mat-icon>filter_alt</mat-icon>
+            Filtrer
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ============================ LISTE ============================ -->
+  <mat-card class="list-card">
+    @if (isListLoading()) {
+      <div class="initial-loading" role="status">
+        <mat-spinner diameter="24" />
+        <span>Chargement des clients...</span>
+      </div>
+    } @else if (listErrorMessage()) {
+      <div class="error-banner" role="alert">{{ listErrorMessage() }}</div>
+    } @else if (clients().length === 0) {
+      <p class="empty-state">Aucun client ne correspond à ces critères.</p>
+    } @else {
+      <p class="results-count">{{ clients().length }} client(s)</p>
+
+      <table mat-table [dataSource]="clients()" class="clients-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef scope="col">Nom</th>
+          <td mat-cell *matCellDef="let client">{{ client.firstName }} {{ client.lastName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef scope="col">Email</th>
+          <td mat-cell *matCellDef="let client">{{ client.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="phone">
+          <th mat-header-cell *matHeaderCellDef scope="col">Téléphone</th>
+          <td mat-cell *matCellDef="let client">{{ client.phone }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
+          <td mat-cell *matCellDef="let client">
+            <mat-chip [class]="client.active ? 'status-active' : 'status-inactive'">
+              {{ client.active ? 'Actif' : 'Inactif' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef scope="col">Inscrit le</th>
+          <td mat-cell *matCellDef="let client">
+            {{ client.createdAt | date: 'dd/MM/yyyy' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    }
+  </mat-card>
+</div>
