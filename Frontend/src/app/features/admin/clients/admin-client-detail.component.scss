@@ -1,0 +1,153 @@
+.client-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  text-decoration: none;
+  width: fit-content;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.detail-card {
+  width: 100%;
+}
+
+.status-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 16px;
+}
+
+.section-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 16px 0 8px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.info-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.reservations-table {
+  width: 100%;
+}
+
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.wishlist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.wishlist-item-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.wishlist-item-price {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.empty-state {
+  color: rgba(0, 0, 0, 0.6);
+  padding: 16px 0;
+}
+
+.initial-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.status-active { background-color: #e6f4ea !important; color: #1e4620 !important; }
+.status-inactive { background-color: rgba(0, 0, 0, 0.08) !important; color: rgba(0, 0, 0, 0.6) !important; }
+.status-pending { background-color: #fff4e5 !important; color: #7a4a00 !important; }
+.status-confirmed { background-color: #e8eaf6 !important; color: #283593 !important; }
+.status-cancelled { background-color: rgba(0, 0, 0, 0.08) !important; color: rgba(0, 0, 0, 0.6) !important; }
+.status-completed { background-color: #e6f4ea !important; color: #1e4620 !important; }

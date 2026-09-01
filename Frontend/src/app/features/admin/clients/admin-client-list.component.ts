@@ -17,6 +17,8 @@ import { AdminClientService } from '../services/admin-client.service';
 import { ClientAdminSummaryDTO } from '../../../core/models/admin/client-admin-summary.model';
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 
+import { RouterLink } from '@angular/router';
+
 /** Filtre à 3 états : '' = Tous, 'true' = Oui, 'false' = Non (jamais transmis tel quel au backend). */
 type TriStateFilter = '' | 'true' | 'false';
 
@@ -48,6 +50,7 @@ interface FiltersForm {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink, // 🆕 US-7.5
     MatCardModule,
     MatFormFieldModule,
     MatSelectModule,

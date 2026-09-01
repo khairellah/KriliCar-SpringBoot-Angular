@@ -18,6 +18,8 @@ import { CompanyAdminSummaryDTO } from '../../../core/models/admin/company-admin
 import { ErrorResponse } from '../../../core/models/errors/error-response.model';
 import { City } from '../../../core/models/enums';
 
+import { RouterLink } from '@angular/router';
+
 /** Filtre à 3 états : '' = Tous, 'true' = Oui, 'false' = Non (jamais transmis tel quel au backend). */
 type TriStateFilter = '' | 'true' | 'false';
 
@@ -50,6 +52,7 @@ interface FiltersForm {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink, // 🆕 US-7.5
     MatCardModule,
     MatFormFieldModule,
     MatSelectModule,

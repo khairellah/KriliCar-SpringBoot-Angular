@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { ClientAdminSummaryDTO } from '../../../core/models/admin/client-admin-summary.model';
+import { ClientDetailResponse } from '../../../core/models/admin/client-detail-response.model';
 
 /**
  * Service Admin dédié aux clients, aligné 1-pour-1 sur
@@ -59,5 +60,14 @@ export class AdminClientService {
    */
   deactivateClient(code: string): Observable<ClientAdminSummaryDTO> {
     return this.http.patch<ClientAdminSummaryDTO>(`${this.apiUrl}/${code}/deactivate`, null);
+  }
+
+    /**
+   * US-7.5 : GET /api/v1/admins/clients/{code}
+   * Détail complet d'un client : profil complet + réservations + wishlist + statistiques.
+   * Vue agrégée en lecture seule (aucune mutation possible depuis cet endpoint).
+   */
+  getClientDetail(code: string): Observable<ClientDetailResponse> {
+    return this.http.get<ClientDetailResponse>(`${this.apiUrl}/${code}`);
   }
 }

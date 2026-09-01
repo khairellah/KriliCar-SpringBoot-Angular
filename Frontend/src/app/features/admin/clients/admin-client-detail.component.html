@@ -1,0 +1,126 @@
+<div class="client-detail-page">
+  <a class="back-link" routerLink="/admin/clients">
+    <mat-icon>arrow_back</mat-icon>
+    Retour à la liste des clients
+  </a>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement du détail du client...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (client(); as c) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>{{ c.firstName }} {{ c.lastName }}</mat-card-title>
+        <mat-card-subtitle>Code : {{ c.code }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="status-row">
+          <mat-chip [class]="c.active ? 'status-active' : 'status-inactive'">
+            {{ c.active ? 'Actif' : 'Inactif' }}
+          </mat-chip>
+        </div>
+
+        <h3 class="section-title">Profil</h3>
+        <div class="info-grid">
+          <div class="info-field">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ c.email }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Téléphone</span>
+            <span class="info-value">{{ c.phone }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Inscrit le</span>
+            <span class="info-value">{{ c.createdAt | date: 'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+
+        <h3 class="section-title">Statistiques</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.totalReservations }}</span>
+            <span class="stat-label">Réservations au total</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.pendingReservations }}</span>
+            <span class="stat-label">En attente</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.confirmedReservations }}</span>
+            <span class="stat-label">Confirmées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.cancelledReservations }}</span>
+            <span class="stat-label">Annulées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.completedReservations }}</span>
+            <span class="stat-label">Terminées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.wishlistCount }}</span>
+            <span class="stat-label">Voitures en wishlist</span>
+          </div>
+        </div>
+
+        <h3 class="section-title">Réservations ({{ c.reservations.length }})</h3>
+        @if (c.reservations.length === 0) {
+          <p class="empty-state">Ce client n'a effectué aucune réservation pour le moment.</p>
+        } @else {
+          <table mat-table [dataSource]="c.reservations" class="reservations-table">
+            <ng-container matColumnDef="car">
+              <th mat-header-cell *matHeaderCellDef scope="col">Voiture</th>
+              <td mat-cell *matCellDef="let r">{{ r.car?.brandName }} {{ r.car?.modelName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="dates">
+              <th mat-header-cell *matHeaderCellDef scope="col">Période</th>
+              <td mat-cell *matCellDef="let r">
+                {{ r.startDate | date: 'dd/MM/yyyy' }} - {{ r.endDate | date: 'dd/MM/yyyy' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef scope="col">Prix total</th>
+              <td mat-cell *matCellDef="let r">{{ r.totalPrice != null ? (r.totalPrice + ' MAD') : '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
+              <td mat-cell *matCellDef="let r">
+                <mat-chip [class]="statusClass(r.status)" [matTooltip]="statusDescription(r.status)">
+                  {{ statusLabel(r.status) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="reservationsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: reservationsDisplayedColumns;"></tr>
+          </table>
+        }
+
+        <h3 class="section-title">Wishlist ({{ c.wishlist.length }})</h3>
+        @if (c.wishlist.length === 0) {
+          <p class="empty-state">Ce client n'a ajouté aucune voiture à sa wishlist.</p>
+        } @else {
+          <div class="wishlist-grid">
+            @for (car of c.wishlist; track car.code) {
+              <div class="wishlist-item">
+                <span class="wishlist-item-title">{{ car.brandName }} {{ car.modelName }}</span>
+                <span class="wishlist-item-price">
+                  {{ car.price != null ? (car.price + ' MAD / jour') : 'Prix non renseigné' }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

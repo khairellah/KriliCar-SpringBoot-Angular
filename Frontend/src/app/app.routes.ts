@@ -136,12 +136,32 @@ export const routes: Routes = [
       )
   },
   {
+    // US-7.5 : Détail complet d'une société (Admin) — après 'admin/companies' (static)
+    // et 'admin/companies/boost-pending' (static), pour ne jamais capturer un
+    // segment statique dans le paramètre dynamique :code.
+    path: 'admin/companies/:code',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/companies/admin-company-detail.component').then(
+        (m) => m.AdminCompanyDetailComponent
+      )
+  },
+  {
     // US-7.3 : Liste des clients filtrable (Admin) — protégé authGuard + roleGuard(['ADMIN'])
     path: 'admin/clients',
     canActivate: [authGuard, roleGuard('ADMIN')],
     loadComponent: () =>
       import('./features/admin/clients/admin-client-list.component').then(
         (m) => m.AdminClientListComponent
+      )
+  },
+  {
+    // US-7.5 : Détail complet d'un client (Admin)
+    path: 'admin/clients/:code',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/clients/admin-client-detail.component').then(
+        (m) => m.AdminClientDetailComponent
       )
   },
   {

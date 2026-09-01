@@ -1,0 +1,161 @@
+<div class="company-detail-page">
+  <a class="back-link" routerLink="/admin/companies">
+    <mat-icon>arrow_back</mat-icon>
+    Retour à la liste des sociétés
+  </a>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement du détail de la société...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (company(); as c) {
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>{{ c.companyName }}</mat-card-title>
+        <mat-card-subtitle>Code : {{ c.code }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="status-row">
+          <mat-chip [class]="c.active ? 'status-active' : 'status-inactive'">
+            {{ c.active ? 'Actif' : 'Inactif' }}
+          </mat-chip>
+          @if (c.isBooster) {
+            <mat-chip class="status-boosted">Boostée</mat-chip>
+          } @else if (c.boostRequested) {
+            <mat-chip class="status-boost-pending">Demande de Boost en attente</mat-chip>
+          } @else {
+            <mat-chip class="status-no-boost">Non boostée</mat-chip>
+          }
+        </div>
+
+        <h3 class="section-title">Profil</h3>
+        <div class="info-grid">
+          <div class="info-field">
+            <span class="info-label">Contact</span>
+            <span class="info-value">{{ c.firstName }} {{ c.lastName }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ c.email }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Téléphone</span>
+            <span class="info-value">{{ c.phone }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Téléphone fixe</span>
+            <span class="info-value">{{ c.landline || '—' }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Ville</span>
+            <span class="info-value">{{ cityLabels[c.city] }}</span>
+          </div>
+          <div class="info-field">
+            <span class="info-label">Inscrite le</span>
+            <span class="info-value">{{ c.createdAt | date: 'dd/MM/yyyy' }}</span>
+          </div>
+          @if (c.boostRequestedAt) {
+            <div class="info-field">
+              <span class="info-label">Demande Boost envoyée le</span>
+              <span class="info-value">{{ c.boostRequestedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          }
+          @if (c.boostActivatedAt) {
+            <div class="info-field">
+              <span class="info-label">Boost activé le</span>
+              <span class="info-value">{{ c.boostActivatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          }
+        </div>
+
+        @if (c.description) {
+          <h3 class="section-title">Description</h3>
+          <p class="description-text">{{ c.description }}</p>
+        }
+
+        <h3 class="section-title">Statistiques</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.totalCars }}</span>
+            <span class="stat-label">Voitures au total</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.availableCars }}</span>
+            <span class="stat-label">Disponibles</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.reservedCars }}</span>
+            <span class="stat-label">Réservées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.maintenanceCars }}</span>
+            <span class="stat-label">En maintenance</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.totalReservations }}</span>
+            <span class="stat-label">Réservations au total</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.pendingReservations }}</span>
+            <span class="stat-label">En attente</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.confirmedReservations }}</span>
+            <span class="stat-label">Confirmées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.cancelledReservations }}</span>
+            <span class="stat-label">Annulées</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ c.stats.completedReservations }}</span>
+            <span class="stat-label">Terminées</span>
+          </div>
+        </div>
+
+        <h3 class="section-title">Voitures ({{ c.cars.length }})</h3>
+        @if (c.cars.length === 0) {
+          <p class="empty-state">Cette société n'a ajouté aucune voiture pour le moment.</p>
+        } @else {
+          <table mat-table [dataSource]="c.cars" class="cars-table">
+            <ng-container matColumnDef="brandModel">
+              <th mat-header-cell *matHeaderCellDef scope="col">Marque / Modèle</th>
+              <td mat-cell *matCellDef="let car">{{ car.brandName }} {{ car.modelName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="vin">
+              <th mat-header-cell *matHeaderCellDef scope="col">VIN</th>
+              <td mat-cell *matCellDef="let car">{{ car.vin }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="year">
+              <th mat-header-cell *matHeaderCellDef scope="col">Année</th>
+              <td mat-cell *matCellDef="let car">{{ car.year }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef scope="col">Prix / jour</th>
+              <td mat-cell *matCellDef="let car">{{ car.price != null ? (car.price + ' MAD') : '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="availability">
+              <th mat-header-cell *matHeaderCellDef scope="col">Statut</th>
+              <td mat-cell *matCellDef="let car">
+                <mat-chip [class]="availabilityClass(car.availability)">
+                  {{ getAvailabilityLabel(car.availability) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="carsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: carsDisplayedColumns;"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

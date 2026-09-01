@@ -7,6 +7,8 @@ import { environment } from '../../../../environments/environment';
 import { CompanyProfileResponse } from '../../../core/models/company/company-profile-response.model';
 import { CompanyAdminSummaryDTO } from '../../../core/models/admin/company-admin-summary.model';
 
+import { CompanyDetailResponse } from '../../../core/models/admin/company-detail-response.model';
+
 /**
  * Service Admin dédié aux sociétés, aligné 1-pour-1 sur
  * Backend/src/main/java/com/kriliCar/controllers/AdminCompanyController.java
@@ -85,5 +87,14 @@ export class AdminCompanyService {
    */
   deactivateCompany(code: string): Observable<CompanyAdminSummaryDTO> {
     return this.http.patch<CompanyAdminSummaryDTO>(`${this.apiUrl}/${code}/deactivate`, null);
+  }
+
+    /**
+   * US-7.5 : GET /api/v1/admins/companies/{code}
+   * Détail complet d'une société : profil complet + voitures + statistiques.
+   * Vue agrégée en lecture seule (aucune mutation possible depuis cet endpoint).
+   */
+  getCompanyDetail(code: string): Observable<CompanyDetailResponse> {
+    return this.http.get<CompanyDetailResponse>(`${this.apiUrl}/${code}`);
   }
 }
