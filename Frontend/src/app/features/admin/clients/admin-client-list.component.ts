@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AdminClientService } from '../services/admin-client.service';
 import { ClientAdminSummaryDTO } from '../../../core/models/admin/client-admin-summary.model';
@@ -27,13 +28,19 @@ interface FiltersForm {
  * US-7.3 : Liste des clients (vue Admin), filtrable par statut de compte
  * (active), filtre optionnel unique — GET /api/v1/admins/clients?active=.
  *
- * Écran strictement en LECTURE SEULE : aucune action d'activation/
- * désactivation (US-7.4) ni de lien vers un détail complet (US-7.5), les
- * deux étant hors périmètre de cette US.
+ * US-7.4 : Ajoute l'action d'activation/désactivation de compte
+ * (PATCH /api/v1/admins/clients/{code}/activate|deactivate) :
+ * - Un seul bouton contextuel par ligne : "Désactiver" si le compte est actif,
+ *   "Activer" s'il est inactif — jamais les deux boutons simultanément, pour
+ *   ne jamais laisser l'utilisateur déclencher une erreur 409 évitable
+ *   (idempotence stricte côté backend, cf. ClientServiceImpl.setClientActiveStatus).
+ * - Confirmation inline avant l'appel API (même pattern que
+ *   AdminCompanyListComponent — US-7.2).
+ * - Effet immédiat côté backend : login bloqué + JWT déjà émis inopérant dès
+ *   la requête suivante — un avertissement est affiché avant confirmation
+ *   d'une désactivation.
  *
- * Même pattern que AdminCompanyListComponent (US-7.1), simplifié : un seul
- * filtre (pas de "boosted", concept propre à Company) et sans colonne
- * "actions".
+ * US-7.5 (détail complet) reste hors périmètre de ce composant.
  */
 @Component({
   selector: 'app-admin-client-list',
@@ -48,7 +55,8 @@ interface FiltersForm {
     MatIconModule,
     MatTableModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule
   ],
   templateUrl: './admin-client-list.component.html',
   styleUrl: './admin-client-list.component.scss'
@@ -57,7 +65,8 @@ export class AdminClientListComponent {
   private readonly fb = inject(FormBuilder);
   private readonly adminClientService = inject(AdminClientService);
 
-  readonly displayedColumns = ['name', 'email', 'phone', 'active', 'createdAt'] as const;
+  // 🔧 US-7.4 : ajout de la colonne "actions"
+  readonly displayedColumns = ['name', 'email', 'phone', 'active', 'createdAt', 'actions'] as const;
 
   readonly activeFilterOptions: ReadonlyArray<{ value: TriStateFilter; label: string }> = [
     { value: '', label: 'Tous' },
@@ -72,6 +81,17 @@ export class AdminClientListComponent {
   readonly clients = signal<ClientAdminSummaryDTO[]>([]);
   readonly isListLoading = signal(true);
   readonly listErrorMessage = signal<string | null>(null);
+
+  // Filtre "active" réellement appliqué à la dernière recherche : utilisé
+  // pour décider si une ligne doit être retirée de la liste après un
+  // changement de statut qui ne correspond plus au filtre actif (US-7.4).
+  private lastActiveFilter: boolean | undefined = undefined;
+
+  // ============================ US-7.4 : Activation / Désactivation ============================
+  /** Code du client en attente de confirmation inline, et action ciblée. */
+  readonly confirmingAction = signal<{ code: string; targetActive: boolean } | null>(null);
+  readonly updatingCode = signal<string | null>(null);
+  readonly actionErrorMessage = signal<string | null>(null);
 
   constructor() {
     this.loadClients();
@@ -97,10 +117,13 @@ export class AdminClientListComponent {
   private loadClients(): void {
     this.isListLoading.set(true);
     this.listErrorMessage.set(null);
+    this.actionErrorMessage.set(null);
 
     const { active } = this.form.getRawValue();
+    const activeFilter = this.toBooleanOrUndefined(active);
+    this.lastActiveFilter = activeFilter;
 
-    this.adminClientService.getClients(this.toBooleanOrUndefined(active)).subscribe({
+    this.adminClientService.getClients(activeFilter).subscribe({
       next: (clients) => {
         this.clients.set(clients);
         this.isListLoading.set(false);
@@ -110,6 +133,83 @@ export class AdminClientListComponent {
         const body = err.error as ErrorResponse | undefined;
         this.listErrorMessage.set(
           body?.message ?? 'Impossible de charger les clients. Veuillez réessayer plus tard.'
+        );
+      }
+    });
+  }
+
+  // ============================ US-7.4 : Actions activation/désactivation ============================
+
+  /** true = demande d'activation, false = demande de désactivation. */
+  askToggleActive(code: string, targetActive: boolean): void {
+    this.actionErrorMessage.set(null);
+    this.confirmingAction.set({ code, targetActive });
+  }
+
+  cancelToggleActive(): void {
+    this.confirmingAction.set(null);
+  }
+
+  isConfirming(code: string): boolean {
+    return this.confirmingAction()?.code === code;
+  }
+
+  confirmToggleActive(code: string): void {
+    const action = this.confirmingAction();
+    if (!action || action.code !== code) {
+      return;
+    }
+
+    this.actionErrorMessage.set(null);
+    this.updatingCode.set(code);
+
+    const request$ = action.targetActive
+      ? this.adminClientService.activateClient(code)
+      : this.adminClientService.deactivateClient(code);
+
+    request$.subscribe({
+      next: (updated) => {
+        this.updatingCode.set(null);
+        this.confirmingAction.set(null);
+
+        // Si un filtre "active" est appliqué et que le nouvel état ne
+        // correspond plus, le client n'apparaîtrait plus dans une vraie
+        // recherche : on le retire directement de la liste locale plutôt
+        // que de forcer un rechargement complet.
+        if (this.lastActiveFilter !== undefined && updated.active !== this.lastActiveFilter) {
+          this.clients.update((list) => list.filter((c) => c.code !== code));
+          return;
+        }
+
+        this.clients.update((list) =>
+          list.map((c) => (c.code === updated.code ? updated : c))
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        this.updatingCode.set(null);
+        this.confirmingAction.set(null);
+        const body = err.error as ErrorResponse | undefined;
+
+        if (err.status === 409) {
+          // Idempotence : déjà dans l'état demandé (traité entre-temps par un
+          // autre Admin) — on recharge la liste pour refléter l'état réel serveur.
+          this.actionErrorMessage.set(
+            body?.message ?? 'Ce client a déjà été traité. La liste va être actualisée.'
+          );
+          this.loadClients();
+          return;
+        }
+
+        if (err.status === 404) {
+          this.actionErrorMessage.set(
+            body?.message ?? 'Ce client est introuvable. La liste va être actualisée.'
+          );
+          this.loadClients();
+          return;
+        }
+
+        this.actionErrorMessage.set(
+          body?.message ?? 'Une erreur est survenue. Veuillez réessayer plus tard.'
         );
       }
     });
