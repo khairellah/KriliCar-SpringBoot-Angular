@@ -165,6 +165,13 @@ export const routes: Routes = [
       )
   },
   {
+    // US-8.1 : Dashboard KPI globaux (Admin) — protégé authGuard + roleGuard(['ADMIN'])
+    path: 'admin/kpi',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/kpi/admin-kpi.component').then((m) => m.AdminKpiComponent)
+  },
+  {
   // US-5.1 : Création réservation (Client) — protégé authGuard + roleGuard(['CLIENT'])
   path: 'client/reservations/new/:carCode',
   canActivate: [authGuard, roleGuard('CLIENT')],

@@ -1,0 +1,92 @@
+// Frontend/src/app/features/admin/kpi/admin-kpi.component.scss
+.kpi-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  box-sizing: border-box;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin: 0;
+}
+
+.section-card {
+  width: 100%;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+// Mêmes teintes que les badges de statut utilisés dans le reste de l'app
+// (cf. admin-company-detail.component.scss / reservation-list.component.scss)
+.stat-highlight {
+  background-color: #e6f4ea;
+
+  .stat-value,
+  .stat-label {
+    color: #1e4620;
+  }
+}
+
+.stat-warn {
+  background-color: rgba(0, 0, 0, 0.08);
+
+  .stat-value,
+  .stat-label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.stat-pending {
+  background-color: #fff4e5;
+
+  .stat-value,
+  .stat-label {
+    color: #7a4a00;
+  }
+}
+
+.initial-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.9rem;
+}
+
+.error-banner {
+  background-color: #fdecea;
+  color: #611a15;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
