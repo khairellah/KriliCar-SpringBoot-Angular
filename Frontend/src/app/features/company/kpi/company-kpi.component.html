@@ -1,0 +1,63 @@
+<!-- Frontend/src/app/features/company/kpi/company-kpi.component.html -->
+<div class="kpi-page">
+  <h1 class="page-title">Mes statistiques</h1>
+
+  @if (isLoading()) {
+    <div class="initial-loading" role="status">
+      <mat-spinner diameter="24" />
+      <span>Chargement de vos indicateurs...</span>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+  } @else if (kpi(); as k) {
+    <!-- ============================ VOITURES ============================ -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Mes voitures</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ k.cars.totalCount }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-card stat-highlight">
+            <span class="stat-value">{{ k.cars.availableCount }}</span>
+            <span class="stat-label">Disponibles</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ k.cars.reservedCount }}</span>
+            <span class="stat-label">Réservées</span>
+          </div>
+          <div class="stat-card stat-pending">
+            <span class="stat-value">{{ k.cars.maintenanceCount }}</span>
+            <span class="stat-label">En maintenance</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ============================ RÉSERVATIONS ============================ -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Mes réservations</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ k.reservations.totalCount }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-card stat-highlight">
+            <span class="stat-value">{{ k.reservations.validatedCount }}</span>
+            <span class="stat-label">Validées</span>
+          </div>
+          <div class="stat-card stat-warn">
+            <span class="stat-value">{{ k.reservations.cancelledCount }}</span>
+            <span class="stat-label">Annulées</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

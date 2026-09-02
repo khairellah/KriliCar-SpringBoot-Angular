@@ -117,6 +117,15 @@ export const routes: Routes = [
         (m) => m.CompanyBoostComponent
       )
   },
+    {
+    // US-8.2 : Dashboard KPI Company (scopé) — protégé authGuard + roleGuard(['COMPANY'])
+    path: 'company/kpi',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/kpi/company-kpi.component').then(
+        (m) => m.CompanyKpiComponent
+      )
+  },
   {
     // US-6.2 : Demandes de Boost en attente + activation (Admin)
     path: 'admin/companies/boost-pending',
