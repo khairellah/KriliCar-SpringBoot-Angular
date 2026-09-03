@@ -1,0 +1,24 @@
+<div class="dashboard-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Espace Société</h1>
+      <p class="welcome-text">
+        Connecté en tant que <strong>{{ email() }}</strong>
+        @if (code()) { <span class="user-code">(code {{ code() }})</span> }
+      </p>
+    </div>
+    <app-pending-reservations-badge />
+  </div>
+
+  <div class="cards-grid">
+    @for (card of cards; track card.route) {
+      <a class="dashboard-card-link" [routerLink]="card.route">
+        <mat-card class="dashboard-card">
+          <mat-icon class="dashboard-card-icon">{{ card.icon }}</mat-icon>
+          <h2 class="dashboard-card-title">{{ card.title }}</h2>
+          <p class="dashboard-card-description">{{ card.description }}</p>
+        </mat-card>
+      </a>
+    }
+  </div>
+</div>

@@ -29,6 +29,15 @@ export const routes: Routes = [
       )
   },
   {
+    // Sprint F8bis : Hub Client — point d'entrée après login (cf. redirectByRole)
+    path: 'client',
+    canActivate: [authGuard, roleGuard('CLIENT')],
+    loadComponent: () =>
+      import('./features/client/dashboard/client-dashboard.component').then(
+        (m) => m.ClientDashboardComponent
+      )
+  },
+  {
     // US-1.5 : Profil Client — protégé authGuard + roleGuard(['CLIENT'])
     path: 'client/profile',
     canActivate: [authGuard, roleGuard('CLIENT')],
@@ -45,12 +54,30 @@ export const routes: Routes = [
       import('./features/client/wishlist/wishlist.component').then((m) => m.WishlistComponent)
   },
   {
+    // Sprint F8bis : Hub Admin — point d'entrée après login (cf. redirectByRole)
+    path: 'admin',
+    canActivate: [authGuard, roleGuard('ADMIN')],
+    loadComponent: () =>
+      import('./features/admin/dashboard/admin-dashboard.component').then(
+        (m) => m.AdminDashboardComponent
+      )
+  },
+  {
     // US-1.6 : Profil Admin — protégé authGuard + roleGuard(['ADMIN'])
     path: 'admin/profile',
     canActivate: [authGuard, roleGuard('ADMIN')],
     loadComponent: () =>
       import('./features/admin/profile/admin-profile.component').then(
         (m) => m.AdminProfileComponent
+      )
+  },
+  {
+    // Sprint F8bis : Hub Company — point d'entrée après login (cf. redirectByRole)
+    path: 'company',
+    canActivate: [authGuard, roleGuard('COMPANY')],
+    loadComponent: () =>
+      import('./features/company/dashboard/company-dashboard.component').then(
+        (m) => m.CompanyDashboardComponent
       )
   },
   {
